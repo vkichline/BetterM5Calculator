@@ -3,6 +3,7 @@
 
 MemoryCalculator<double,  NUM_MEMORIES>  dpcalc;
 MemoryCalculator<int32_t, NUM_MEMORIES>  icalc;
+TextCalculator                           tcalc;
 
 
 void setUp(void) {}   // set stuff up here
@@ -25,6 +26,8 @@ void loop() {
   run_dp_addition_tests();
   run_dp_mixed_math_tests();
   run_dp_memory_tests();
+
+  run_parser_tests();
 
   UNITY_END();  // stop unit testing
 }
