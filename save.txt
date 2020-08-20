@@ -1,3 +1,17 @@
+Things to do:
+Add % command
+Add CS command
+Add ^ command
+Implement key memories
+Add number bases
+Consider integer mode
+Add trig mode
+Add trig operators
+Create M5Calc
+
+======================================================
+
+
 enum Num_Mode { Binary_Mode, Octal_Mode, Decimal_Mode, Hexidecimal_Mode };
 
     Num_Mode                    get_num_mode()              { return _num_mode; }

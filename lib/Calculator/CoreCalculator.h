@@ -28,7 +28,7 @@
 #define PRECENT_OPERATOR          (uint8_t('%'))
 #define OPEN_PAREN_OPERATOR       (uint8_t('('))
 #define CLOSE_PAREN_OPERATOR      (uint8_t(')'))
-#define EVALUATE_OPERATOR         (uint8_t('='))
+#define EVALUATE_OPERATOR         (uint8_t('='))            // This is a special operator that is not implemented as a class or added to _operators
 
 
 template<typename T> class        Operator;                 // Forward declaration to operator template
@@ -247,7 +247,7 @@ template <typename T> T CoreCalculator<T>::peek_value() {
 // Push an operator onto the operator_stack.
 // The operator must exist in _operators.
 // Shunting-yard algorithm for evaluating infix notation (ref: Dijkstra)
-// If the operator on the _operator stack is the same or greater precedence
+// If the operator on the operator_stack is the same or greater precedence
 // than this operator, evaluate it first.
 //
 template <typename T> bool CoreCalculator<T>::push_operator(Op_ID id) {

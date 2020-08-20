@@ -4,12 +4,13 @@
 #include <TextCalculator.h>
 #include <KeyCalculator.h>
 
+#define NUM_MEMORIES    100
+
 extern MemoryCalculator<double,  NUM_MEMORIES>  dpcalc;
 extern MemoryCalculator<int32_t, NUM_MEMORIES>  icalc;
 extern TextCalculator                           tcalc;
 extern KeyCalculator                            kcalc;
 
-#define NUM_MEMORIES    100
 
 
 void run_i_push_value_tests();      // Tests from test_i_push_value.cpp

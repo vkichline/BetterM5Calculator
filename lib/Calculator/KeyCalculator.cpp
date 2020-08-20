@@ -76,5 +76,20 @@ bool KeyCalculator::clear(bool all_clear) {
 }
 
 
-bool KeyCalculator::change_sign() { return false; }
-bool KeyCalculator::memory()      { return false; }
+bool KeyCalculator::change_sign() {
+  if(DEBUG_KEY_CALCULATOR) Serial.println("change_sign");
+  if(0 < _calc.value_stack.size()) {
+    if(0.0 != _calc.get_value()) {
+      double val = _calc.pop_value();
+      if(DEBUG_KEY_CALCULATOR) Serial.printf("Changing value from %.2f to %.2f\n", val, -val);
+      _calc.push_value(-val);
+      return true;
+    }
+  }
+  return false;
+}
+
+
+bool KeyCalculator::memory() {
+  return false;
+}

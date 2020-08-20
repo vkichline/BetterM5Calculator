@@ -44,7 +44,19 @@ void test_key_memory() {
 }
 
 
+void test_change_sign() {
+  TEST_ASSERT_TRUE(kcalc.key('1'));
+  TEST_ASSERT_TRUE(kcalc.key('2'));
+  TEST_ASSERT_TRUE(kcalc.key('3'));
+  TEST_ASSERT_TRUE(kcalc.key('`'));
+  TEST_ASSERT_EQUAL_STRING("-123.00", kcalc.value().c_str());
+  TEST_ASSERT_TRUE(kcalc.key('`'));
+  TEST_ASSERT_EQUAL_STRING("123.00", kcalc.value().c_str());
+}
+
+
 void run_key_calculator_tests() {
   RUN_TEST(test_key_add_1_plus_1);
   RUN_TEST(test_key_memory);
+  RUN_TEST(test_change_sign);
 }
