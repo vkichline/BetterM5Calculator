@@ -4,6 +4,7 @@
         "fcalc",
         "ftoa",
         "icalc",
+        "kcalc",
         "println",
         "tcalc",
         "wspace"
