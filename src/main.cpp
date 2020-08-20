@@ -1,11 +1,12 @@
 #include <M5Stack.h>
 #include <TextCalculator.h>
+#include <KeyCalculator.h>
 
 CoreCalculator<double>        fcalc;
 CoreCalculator<int32_t>       icalc;
 MemoryCalculator<double, 10>  memcalc;
 TextCalculator                tcalc;
-
+KeyCalculator                 kcalc;
 
 void setup() {
   M5.begin();
@@ -44,6 +45,16 @@ void setup() {
   
   tcalc.parse("1 + 5 / 3.2 * 7.3167 - 8 * 33.33 =");
   Serial.printf("\"1 + 5 / 3.2 * 7.3167 - 8 * 33.33 =\" = \"%s\"\n", tcalc.value().c_str());
+
+  kcalc.key('1');
+  kcalc.key('0');
+  kcalc.key('0');
+  kcalc.key('+');
+  kcalc.key('1');
+  kcalc.key('0');
+  kcalc.key('1');
+  kcalc.key('=');
+  Serial.printf("KeyCalculator: 100 + 101 = %s\n", kcalc.value().c_str());
 }
 
 
