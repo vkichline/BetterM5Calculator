@@ -25,6 +25,7 @@
 #define SUBTRACTION_OPERATOR      (uint8_t('-'))
 #define MULTIPLICATION_OPERATOR   (uint8_t('*'))
 #define DIVISION_OPERATOR         (uint8_t('/'))
+#define PRECENT_OPERATOR          (uint8_t('%'))
 #define OPEN_PAREN_OPERATOR       (uint8_t('('))
 #define CLOSE_PAREN_OPERATOR      (uint8_t(')'))
 #define EVALUATE_OPERATOR         (uint8_t('='))

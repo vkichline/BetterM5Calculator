@@ -4,6 +4,7 @@
 MemoryCalculator<double,  NUM_MEMORIES>  dpcalc;
 MemoryCalculator<int32_t, NUM_MEMORIES>  icalc;
 TextCalculator                           tcalc;
+KeyCalculator                            kcalc;
 
 
 void setUp(void) {}   // set stuff up here
@@ -16,18 +17,17 @@ void setup() {
   UNITY_BEGIN();  // start unit testing
 }
 
+
 void loop() {
   run_i_push_value_tests();
   run_i_addition_tests();
   run_i_mixed_math_tests();
   run_i_memory_tests();
-
   run_dp_push_value_tests();
   run_dp_addition_tests();
   run_dp_mixed_math_tests();
   run_dp_memory_tests();
-
   run_parser_tests();
-
+  run_key_calculator_tests();
   UNITY_END();  // stop unit testing
 }

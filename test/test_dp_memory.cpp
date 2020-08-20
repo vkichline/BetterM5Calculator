@@ -1,5 +1,6 @@
 #include "test_main.h"
 
+
 void test_dp_is_memory_clear() {
   TEST_ASSERT_EQUAL(0.0, dpcalc.get_memory());
   for(uint8_t i = 0; i < NUM_MEMORIES; i++) {
@@ -7,6 +8,7 @@ void test_dp_is_memory_clear() {
   }
   TEST_ASSERT_EQUAL(0, dpcalc.get_memory_depth());
 }
+
 
 void test_dp_memory_recall() {
   dpcalc.clear_all_memory();

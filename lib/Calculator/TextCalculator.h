@@ -26,12 +26,14 @@ class TextCalculator {
     bool      enter(Op_ID id);
     Op_Err    total();
     String    value();
-    void      move_to_memory();
-    bool      move_to_memory(uint8_t index);
+    void      copy_to_memory();
+    bool      copy_to_memory(uint8_t index);
     void      push();
-    void      retrieve_memory();
-    void      retrieve_memory(uint8_t index);
+    void      recall_memory();
+    void      recall_memory(uint8_t index);
     void      pop();
+    void      clear_memory();
+    void      clear_all_memory();
   protected:
     MemoryCalculator<double, 10>  _calc;
     std::set<uint8_t>             _ops;

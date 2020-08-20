@@ -1,7 +1,7 @@
 #include "test_main.h"
 
 
-void test_dp_add_1_plus_1(void) {
+void test_dp_add_1_plus_1() {
   TEST_ASSERT_TRUE(dpcalc.push_value(1));
   TEST_ASSERT_TRUE(dpcalc.push_operator('+'));
   TEST_ASSERT_TRUE(dpcalc.push_value(1));
@@ -11,7 +11,7 @@ void test_dp_add_1_plus_1(void) {
 }
 
 
-void test_dp_add_1_plus_1_plus_1(void) {
+void test_dp_add_1_plus_1_plus_1() {
   TEST_ASSERT_TRUE(dpcalc.push_value(1));
   TEST_ASSERT_TRUE(dpcalc.push_operator('+'));
   TEST_ASSERT_TRUE(dpcalc.push_value(1));
@@ -23,7 +23,7 @@ void test_dp_add_1_plus_1_plus_1(void) {
 }
 
 
-void test_dp_add_4_fractional(void) {
+void test_dp_add_4_fractional() {
   TEST_ASSERT_TRUE(dpcalc.push_value(12.719));
   TEST_ASSERT_TRUE(dpcalc.push_operator('+'));
   TEST_ASSERT_TRUE(dpcalc.push_value(331.04));

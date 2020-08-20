@@ -33,11 +33,11 @@ Op_Err TextCalculator::total() {
   return _double_to_string(_calc.get_value());
 }
 
-void TextCalculator::move_to_memory() {
+void TextCalculator::copy_to_memory() {
   _calc.set_memory(_calc.get_value());
 }
 
-bool TextCalculator::move_to_memory(uint8_t index) {
+bool TextCalculator::copy_to_memory(uint8_t index) {
   return _calc.set_memory(index, _calc.get_value());
 }
 
@@ -45,18 +45,12 @@ void TextCalculator::push() {
   return _calc.push_memory(_calc.get_value());
 }
 
-void TextCalculator::retrieve_memory() {
-  if(0 == _calc.value_stack.size())
-    _calc.push_memory(_calc.get_memory());
-  else
-    _calc.value_stack.back() = _calc.get_memory();
+void TextCalculator::recall_memory() {
+  _calc.value_stack.back() = _calc.get_memory();
 }
 
-void TextCalculator::retrieve_memory(uint8_t index) {
-  if(0 == _calc.value_stack.size())
-    _calc.push_memory(_calc.get_memory(index));
-  else
-    _calc.value_stack.back() = _calc.get_memory(index);
+void TextCalculator::recall_memory(uint8_t index) {
+  _calc.value_stack.back() = _calc.get_memory(index);
 }
 
 void TextCalculator::pop() {
@@ -67,6 +61,15 @@ void TextCalculator::pop() {
     _calc.value_stack.back() = _calc.pop_memory();
   }
 }
+
+void TextCalculator::clear_memory() {
+  _calc.set_memory(0.0);
+}
+
+void TextCalculator::clear_all_memory() {
+  _calc.clear_all_memory();
+}
+
 
 String TextCalculator::_double_to_string(double val) {
   return String(val);   // trivial implementation; will use precision and base later

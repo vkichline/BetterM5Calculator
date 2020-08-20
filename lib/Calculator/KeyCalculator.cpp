@@ -9,22 +9,33 @@ KeyCalculator::KeyCalculator() : TextCalculator() {
 }
 
 bool KeyCalculator::key(uint8_t code) {
-  if('M' == _last_key && 'M' == code) {
+  // First, see if we just pressed the AC key two times
+  if('A' == _last_key && 'A' == code) {
     return clear(true);
   }
+  _last_key = code;
+
+  // Next, see if a number is being entered
   if(('0' <= code && '9' >= code) || ('.' == code)) {
     return _build_number(code);
   }
+
+  // Not a number anymore, so push any number that's been accumulated to the stack
   if(_buffer_index) {
     String str = _convert_buffer();
     if(DEBUG_KEY_CALCULATOR) Serial.printf("pushing %s onto the stack\n", str.c_str());
-    return enter(str);
+    enter(str); // Do not return; push numver and continue processing
   }
-  if('+' == code || '-' == code || '*' == code || '/' == code || '+' == code || '=' == code || '%' == code) {
+
+  // See if its a simple operator
+  if(ADDITION_OPERATOR == code || SUBTRACTION_OPERATOR == code || MULTIPLICATION_OPERATOR == code ||
+    DIVISION_OPERATOR  == code || OPEN_PAREN_OPERATOR  == code || OPEN_PAREN_OPERATOR     == code ||
+    EVALUATE_OPERATOR  == code || PRECENT_OPERATOR     == code) {
     if(DEBUG_KEY_CALCULATOR) Serial.printf("pushing operator '%c'\n", code);
     return enter(code);
   }
-Serial.println("I don't expect to get here yet...");
+
+  // These operations require more complex handling
   switch(code) {
     case '`':   return change_sign();
     case 'A':   return clear(false);
@@ -51,9 +62,19 @@ String KeyCalculator::_convert_buffer() {
 
 
 bool KeyCalculator::clear(bool all_clear) {
-  // Need to implement clear in TextCalculator
+  if(all_clear) {
+    if(DEBUG_KEY_CALCULATOR) Serial.println("Clearing all memory");
+    clear_all_memory();
+    return true;
+  }
+  else {
+    if(DEBUG_KEY_CALCULATOR) Serial.println("Clearing memory");
+    clear_memory();
+    return true;
+  }
   return false;
 }
+
 
 bool KeyCalculator::change_sign() { return false; }
 bool KeyCalculator::memory()      { return false; }

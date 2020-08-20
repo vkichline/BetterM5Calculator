@@ -1,8 +1,7 @@
 #include "test_main.h"
 
 
-
-void test_dp_push_value(void) {
+void test_dp_push_value() {
   double result;
   dpcalc.push_value(123.456);
   result = dpcalc.peek_value();
@@ -15,7 +14,7 @@ void test_dp_push_value(void) {
 }
 
 
-void test_dp_push_3(void) {
+void test_dp_push_3() {
   dpcalc.push_value(1);
   TEST_ASSERT_EQUAL(1, dpcalc.get_value());
   TEST_ASSERT_EQUAL(1, dpcalc.value_stack.size());
@@ -32,7 +31,6 @@ void test_dp_push_3(void) {
   TEST_ASSERT_EQUAL(0, dpcalc.get_value());
   TEST_ASSERT_EQUAL(0, dpcalc.value_stack.size());
 }
-
 
 
 void run_dp_push_value_tests() {

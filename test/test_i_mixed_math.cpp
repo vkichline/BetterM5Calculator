@@ -1,5 +1,6 @@
 #include "test_main.h"
 
+
 // 12 + 330 / -5 - 6 * 3 =
 // = 12 + (330 / -5) - (6 * 3) =
 // = 12 - 66 - 18 =
@@ -40,6 +41,7 @@ void test_i_parens() {
   TEST_ASSERT_EQUAL(0, icalc.value_stack.size());
 }
 
+
 // 1 + 1 = (testing the = operator)
 void test_i_evaluate() {
   TEST_ASSERT_TRUE(icalc.push_value(1));
@@ -51,6 +53,7 @@ void test_i_evaluate() {
   TEST_ASSERT_EQUAL(0, icalc.operator_stack.size());
   TEST_ASSERT_EQUAL(0, icalc.value_stack.size());
 }
+
 
 void run_i_mixed_math_tests() {
   RUN_TEST(test_i_all_operators);

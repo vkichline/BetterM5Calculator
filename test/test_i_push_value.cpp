@@ -1,8 +1,7 @@
 #include "test_main.h"
 
 
-
-void test_i_push_value(void) {
+void test_i_push_value() {
   int32_t result;
   TEST_ASSERT_TRUE(icalc.push_value(123));
   result = icalc.peek_value();
@@ -15,7 +14,7 @@ void test_i_push_value(void) {
 }
 
 
-void test_i_push_3(void) {
+void test_i_push_3() {
   icalc.push_value(1);
   TEST_ASSERT_EQUAL(1, icalc.get_value());
   TEST_ASSERT_EQUAL(1, icalc.value_stack.size());
