@@ -13,10 +13,11 @@
 class KeyCalculator : public TextCalculator {
   public:
     KeyCalculator();
-    bool key(uint8_t code);
-    bool change_sign();
-    bool clear(bool all_clear = false);
-    bool memory(uint8_t code);
+    bool    key(uint8_t code);
+    String  get_display();
+    bool    change_sign();
+    bool    clear(bool all_clear = false);
+    bool    memory(uint8_t code);
   protected:
     char    _num_buffer[KEY_CALCULATOR_NUM_BUFFER_SIZE] = {0};
     char    _mem_buffer[KEY_CALCULATOR_MEM_BUFFER_SIZE] = {0};

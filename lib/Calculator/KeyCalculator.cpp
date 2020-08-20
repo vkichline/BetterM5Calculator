@@ -11,6 +11,18 @@ KeyCalculator::KeyCalculator() : TextCalculator() {
   _entering_memory  = false;
 }
 
+
+// If we're in number input mode, return the current _num_buffer
+// else, display the value
+//
+String  KeyCalculator::get_display() {
+  if(_num_buffer_index) {
+    return _convert_num_buffer(false);
+  }
+  return value();
+}
+
+
 //  Clear (AC, the 'A' command) can be one or two keypresses
 //  Memory operations can be multiple keypresses
 //
