@@ -49,6 +49,7 @@ class CoreCalculator {
     Op_Err                        evaluate_one();           // Evaluate the top operator on the operator_stack (if any)
     Op_Err                        evaluate();               // Evaluate the operator_stack until its empty and there's only one operand (=)
     T                             get_value();              // Top of the operand_stack, or 0.0 if stack is empty
+    bool                          clear();                  // Change value to zero
     std::vector<T>                value_stack;              // Pushdown stack for values. Unfortunately, <stack> is broken
     std::vector<Op_ID>            operator_stack;           // pushdown stack for operators
   protected:
@@ -317,6 +318,14 @@ template <typename T> Op_Err CoreCalculator<T>::evaluate() {
 template <typename T> T CoreCalculator<T>::get_value() {
   if(0 == value_stack.size()) return T(0);
   return peek_value();
+}
+
+// Set the value to zero. Do not change size of the stack unless it's empty,
+//
+template <typename T> bool CoreCalculator<T>::clear() {
+  if(0 != value_stack.size()) value_stack.pop_back();
+  value_stack.push_back(T(0));
+  return true;
 }
 
 // Evaluate the top operator on the operator_stack (if any)
