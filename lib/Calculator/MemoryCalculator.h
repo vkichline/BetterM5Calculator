@@ -20,6 +20,7 @@ class MemoryCalculator : public CoreCalculator<T> {
     uint16_t        get_memory_depth();                   // Get the number of items on the memory stack
     void            clear_memory_stack();                 // Clear the memory stack
     void            clear_all_memory();                   // Clear simple, indexed and stack memory
+    uint8_t         get_mem_array_size();                 // The value of M
 protected:
     T               memory;       // The simplest to access memory
     T               memories[M];  // The array of indexed memory
@@ -76,4 +77,8 @@ template <typename T, uint8_t M> void MemoryCalculator<T, M>::clear_all_memory()
   memory = T(0);
   for(uint8_t i = 0; i < M; i++) memories[i] = T(0);
   clear_memory_stack();
+}
+
+template <typename T, uint8_t M> uint8_t MemoryCalculator<T, M>::get_mem_array_size() {
+  return M;
 }
