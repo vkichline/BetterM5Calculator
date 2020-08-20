@@ -15,7 +15,7 @@ class KeyCalculator : public TextCalculator {
     KeyCalculator();
     bool key(uint8_t code);
     bool change_sign();
-    bool clear(bool all_clear);
+    bool clear(bool all_clear = false);
     bool memory(uint8_t code);
   protected:
     char    _num_buffer[KEY_CALCULATOR_NUM_BUFFER_SIZE] = {0};
@@ -25,5 +25,6 @@ class KeyCalculator : public TextCalculator {
     uint8_t _last_key                                   =  0;
     bool    _entering_memory                            = false;
     bool    _build_number(uint8_t code);
+    bool    _push_number();
     String  _convert_num_buffer(bool clear);
 };

@@ -45,12 +45,15 @@ void TextCalculator::push() {
   return _calc.push_memory(_calc.get_value());
 }
 
-void TextCalculator::recall_memory() {
+bool TextCalculator::recall_memory() {
   _calc.value_stack.back() = _calc.get_memory();
+  return true;
 }
 
-void TextCalculator::recall_memory(uint8_t index) {
+bool TextCalculator::recall_memory(uint8_t index) {
+  if(NUM_CALC_MEMORIES - 1 <= index) return false;
   _calc.value_stack.back() = _calc.get_memory(index);
+  return true;
 }
 
 void TextCalculator::pop() {

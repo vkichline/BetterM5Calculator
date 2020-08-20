@@ -30,8 +30,8 @@ class TextCalculator {
     void      copy_to_memory();
     bool      copy_to_memory(uint8_t index);
     void      push();
-    void      recall_memory();
-    void      recall_memory(uint8_t index);
+    bool      recall_memory();
+    bool      recall_memory(uint8_t index);
     void      pop();
     void      clear_memory();
     void      clear_all_memory();

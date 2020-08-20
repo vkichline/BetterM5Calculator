@@ -1,6 +1,6 @@
 #include "KeyCalculator.h"
 
-#define DEBUG_KEY_CALCULATOR  1
+#define DEBUG_KEY_CALCULATOR  0
 #define MEMORY_OPERATOR       (uint8_t('M'))
 
 
@@ -12,6 +12,8 @@ KeyCalculator::KeyCalculator() : TextCalculator() {
 }
 
 //  Clear (AC, the 'A' command) can be one or two keypresses
+//  Memory operations can be multiple keypresses
+//
 bool KeyCalculator::key(uint8_t code) {
   // First, see if we just pressed the AC key two times
   if('A' == _last_key && 'A' == code) {
@@ -30,12 +32,7 @@ bool KeyCalculator::key(uint8_t code) {
     return _build_number(code);
   }
 
-  // Not a number anymore, so push any number that's been accumulated to the stack
-  if(_num_buffer_index) {
-    String str = _convert_num_buffer(true);
-    if(DEBUG_KEY_CALCULATOR) Serial.printf("pushing %s onto the stack\n", str.c_str());
-    enter(str); // Do not return; push numver and continue processing
-  }
+  _push_number();
 
   // See if its a simple operator
   if(ADDITION_OPERATOR == code  || SUBTRACTION_OPERATOR == code || MULTIPLICATION_OPERATOR == code ||
@@ -62,6 +59,19 @@ bool KeyCalculator::_build_number(uint8_t code) {
   _num_buffer[_num_buffer_index]   = '\0';
   if(DEBUG_KEY_CALCULATOR) Serial.printf("_build_number: %s\n", _num_buffer);
   return true;
+}
+
+
+// Not inputting a number anymore, so push any number that's been accumulated to the stack
+//
+bool KeyCalculator::_push_number() {
+  if(_num_buffer_index) {
+    String str = _convert_num_buffer(true);
+    if(DEBUG_KEY_CALCULATOR) Serial.printf("pushing %s onto the stack\n", str.c_str());
+    enter(str); // Do not return; push numver and continue processing
+    return true;
+  }
+  return false;
 }
 
 
@@ -113,6 +123,7 @@ bool KeyCalculator::change_sign() {
 // Note that there may be 10 or thousands of memories.
 //
 bool KeyCalculator::memory(uint8_t code) {
+  if(DEBUG_KEY_CALCULATOR) Serial.printf("memory('%c')\n", code);
   if(!_entering_memory) {
     if(DEBUG_KEY_CALCULATOR) Serial.println("Setting _entering_memory");
     assert(MEMORY_OPERATOR == code);
@@ -134,26 +145,35 @@ bool KeyCalculator::memory(uint8_t code) {
       if(DEBUG_KEY_CALCULATOR) Serial.printf("Building memory address: '%s'\n", _mem_buffer);
       return true;
     }
+
     // If it's a second 'M', we want to recall memory from the given location
     if(MEMORY_OPERATOR == code) {
-      if(0 == _mem_buffer_index)
-        recall_memory();
-      else
-        recall_memory(atoi(_mem_buffer));     // BUGBUG this should be bool
+      bool result = false;
+      if(0 == _mem_buffer_index) {
+        if(DEBUG_KEY_CALCULATOR) Serial.println("Recalling simple memory");
+        result = recall_memory();
+      }
+      else {
+        uint8_t index = atoi(_mem_buffer);
+        if(DEBUG_KEY_CALCULATOR) Serial.printf("Recalling memory M[%d]\n", index);
+        result = recall_memory(index);
+      }
       _mem_buffer_index               = 0;
       _mem_buffer[_mem_buffer_index]  = '\0';
       _entering_memory                = false;
-      return true;
+      return result;
     }
-    // If it's a memory operation, call the operator and terminate _entering_memory
+
+    // If it's a memory operation, call the memory_operation and terminate _entering_memory
     if(ADDITION_OPERATOR  == code || SUBTRACTION_OPERATOR == code || MULTIPLICATION_OPERATOR == code ||
-       DIVISION_OPERATOR  == code || EVALUATE_OPERATOR  == code   || PRECENT_OPERATOR     == code) {
-      // TBD: This will call _calc.memory_operation(Op_ID op)
-      if(DEBUG_KEY_CALCULATOR) {
-        if(0 == _mem_buffer_index)
-          Serial.printf("TBD: call _calc.memory_operation(Op_ID %c)\n\n", code);
-        else
-          Serial.printf("TBD: call _calc.memory_operation(unit8_t %s, Op_ID %c)\n\n", _mem_buffer, code);
+       DIVISION_OPERATOR  == code || EVALUATE_OPERATOR    == code   || PRECENT_OPERATOR      == code) {
+      if(0 == _mem_buffer_index) {
+        if(DEBUG_KEY_CALCULATOR) Serial.printf("call memory_operation(Op_ID = '%c')\n\n", code);
+        _calc.memory_operation(code);
+      }
+      else {
+        if(DEBUG_KEY_CALCULATOR) Serial.printf("call memory_operation: Op_ID = '%c', index = '%s'\n\n", code, _mem_buffer);
+        _calc.memory_operation(code, atoi(_mem_buffer));
       }
       _mem_buffer_index               = 0;
       _mem_buffer[_mem_buffer_index]  = '\0';
