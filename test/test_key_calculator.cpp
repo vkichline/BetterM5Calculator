@@ -28,8 +28,9 @@ void test_key_memory() {
   kcalc.pop();
   TEST_ASSERT_EQUAL_STRING("111.00", kcalc.value().c_str());
   TEST_ASSERT_TRUE(kcalc.key('A'));   // the AC key
-  kcalc.recall_memory();
   TEST_ASSERT_EQUAL_STRING("0.00",   kcalc.value().c_str());
+  kcalc.recall_memory();
+  TEST_ASSERT_EQUAL_STRING("111.00", kcalc.value().c_str());
   kcalc.recall_memory(3);
   TEST_ASSERT_EQUAL_STRING("111.00", kcalc.value().c_str());
   kcalc.pop();

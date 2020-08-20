@@ -6,7 +6,8 @@
 // where numbers are entered as individual digits. Some commands may
 // by keys, and others may be entered by function call.
 
-#define KEY_CALCULATOR_BUFFER_SIZE  64
+#define KEY_CALCULATOR_NUM_BUFFER_SIZE  64
+#define KEY_CALCULATOR_MEM_BUFFER_SIZE   8
 
 
 class KeyCalculator : public TextCalculator {
@@ -15,11 +16,14 @@ class KeyCalculator : public TextCalculator {
     bool key(uint8_t code);
     bool change_sign();
     bool clear(bool all_clear);
-    bool memory();
+    bool memory(uint8_t code);
   protected:
-    char    _buffer[KEY_CALCULATOR_BUFFER_SIZE] = {0};
-    uint8_t _buffer_index                       =  0;
-    uint8_t _last_key                           =  0;
+    char    _num_buffer[KEY_CALCULATOR_NUM_BUFFER_SIZE] = {0};
+    char    _mem_buffer[KEY_CALCULATOR_MEM_BUFFER_SIZE] = {0};
+    uint8_t _num_buffer_index                           =  0;
+    uint8_t _mem_buffer_index                           =  0;
+    uint8_t _last_key                                   =  0;
+    bool    _entering_memory                            = false;
     bool    _build_number(uint8_t code);
-    String  _convert_buffer();
+    String  _convert_num_buffer(bool clear);
 };

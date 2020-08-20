@@ -29,5 +29,6 @@ void loop() {
   run_dp_memory_tests();
   run_parser_tests();
   run_key_calculator_tests();
+  run_key_memory_tests();
   UNITY_END();  // stop unit testing
 }
