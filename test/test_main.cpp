@@ -17,7 +17,6 @@ void setup() {
   UNITY_BEGIN();  // start unit testing
 }
 
-
 void loop() {
   run_i_push_value_tests();
   run_i_addition_tests();

@@ -1,10 +1,12 @@
 #include "KeyCalculator.h"
 
-#define DEBUG_KEY_CALCULATOR  0
-#define MEMORY_OPERATOR       (uint8_t('M'))
+#define DEBUG_KEY_CALCULATOR    0
+#define MEMORY_OPERATOR         (uint8_t('M'))
+#define BACKSPACE_OPERATOR      (uint8_t('B'))
+#define CALC_NUMERIC_PRECISION  8
 
 
-KeyCalculator::KeyCalculator() : TextCalculator() {
+KeyCalculator::KeyCalculator() : TextCalculator(CALC_NUMERIC_PRECISION) {
   _num_buffer_index = 0;
   _mem_buffer_index = 0;
   _last_key         = 0;
@@ -15,7 +17,7 @@ KeyCalculator::KeyCalculator() : TextCalculator() {
 // If we're in number input mode, return the current _num_buffer
 // else, display the value
 //
-String  KeyCalculator::get_display() {
+String KeyCalculator::get_display() {
   if(_num_buffer_index) {
     return _convert_num_buffer(false);
   }

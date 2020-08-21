@@ -1,4 +1,5 @@
 #include <M5Stack.h>
+#include <M5ez.h>
 #include <KeyCalculator.h>
 
 #define KEYBOARD_I2C_ADDR     0X08          // I2C address of the Calculator FACE
@@ -6,8 +7,8 @@
 
 #define SCREEN_WIDTH          320           // Horizontal screen size
 #define SCREEN_H_CENTER       160           // Horizontal center of screen
-#define FG_COLOR              LIGHTGREY     // Arbitrary foreground color
-#define BG_COLOR              BLUE          // Arbitrary background color
+#define FG_COLOR              BLACK         // Arbitrary foreground color
+#define BG_COLOR              0xEF7D        // Arbitrary background color
 
 #define ANN_TOP               0             // Top of the Annunciator, which shows calculator status
 #define ANN_HEIGHT            20            // Height of the Annunciator
@@ -85,10 +86,6 @@ bool read_key(char& input) {
 //
 bool process_input() {
   char input;
-  M5.update();
-  if(M5.BtnA.wasReleased()) { return true; }
-  if(M5.BtnB.wasReleased()) { return true; }
-  if(M5.BtnC.wasReleased()) { return true; }
 
   if(read_key(input)) {
     if(calc.key(input)) {
@@ -100,10 +97,11 @@ bool process_input() {
 
 
 void setup() {
-  M5.begin();
+  ez.begin();
   Wire.begin();
   pinMode(KEYBOARD_INT, INPUT_PULLUP);
-  M5.Lcd.clearDisplay(BG_COLOR);
+  ez.header.show("Calculator");
+  ez.buttons.show("Settings ## Bkspc");
   display_value();
 }
 

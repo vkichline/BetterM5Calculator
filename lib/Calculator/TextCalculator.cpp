@@ -46,13 +46,13 @@ void TextCalculator::push() {
 }
 
 bool TextCalculator::recall_memory() {
-  _calc.value_stack.back() = _calc.get_memory();
+  _calc.value_stack.push_back(_calc.get_memory());
   return true;
 }
 
 bool TextCalculator::recall_memory(uint8_t index) {
   if(NUM_CALC_MEMORIES - 1 <= index) return false;
-  _calc.value_stack.back() = _calc.get_memory(index);
+  _calc.value_stack.push_back(_calc.get_memory(index));
   return true;
 }
 
@@ -73,9 +73,35 @@ void TextCalculator::clear_all_memory() {
   _calc.clear_all_memory();
 }
 
-
+// Convert the value to a string, with no trailing decimal point.
+// This algorithm only works for positive numbers, so for negative numbers
+// insert a - in the buffer and invert val
+//
 String TextCalculator::_double_to_string(double val) {
-  return String(val);   // trivial implementation; will use precision and base later
+  if(0.0 == val) return String("0");
+  double  threshold   = 1.0 / pow(10.0, _precision);  // Precision is a private member variable
+  int     m           = log10(abs(val));
+  char    buffer[64]  = {0};
+  int     digit       = 0;
+  char*   p           = buffer;
+
+  if(0.0 > val) {
+    val    = -val;
+    *(p++) = '-';
+  }
+  while((0 <= m) || (val > threshold)) {
+    double weight = pow(10.0, m);
+    digit = floor(val / weight);
+    val  -= (digit * weight);
+    *(p++)= '0' + digit;
+    if(m == 0) *(p++) = '.';
+    *p    = '\0';
+    m--;
+  }
+  // if the last character is a '.', delete it
+  if('.' == *(p-1)) *(p-1) = '\0';
+  // I have seen this return an empty string in tests when passed 0.0 (after a clear all operation)
+  return ('\0' == buffer[0]) ? String("0") : String(buffer);
 }
 
 double TextCalculator::_string_to_double(const char* val) {
