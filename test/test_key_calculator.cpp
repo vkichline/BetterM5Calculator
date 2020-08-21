@@ -56,7 +56,7 @@ void test_key_memory() {
 }
 
 
-void test_change_sign() {
+void test_key_change_sign() {
   TEST_ASSERT_TRUE(kcalc.key('1'));
   TEST_ASSERT_TRUE(kcalc.key('2'));
   TEST_ASSERT_TRUE(kcalc.key('3'));
@@ -67,8 +67,32 @@ void test_change_sign() {
 }
 
 
+void test_key_backspace() {
+  TEST_ASSERT_TRUE(kcalc.key('1'));
+  TEST_ASSERT_TRUE(kcalc.key('2'));
+  TEST_ASSERT_TRUE(kcalc.key('3'));   // 123
+  TEST_ASSERT_TRUE(kcalc.key('B'));   // 12
+  TEST_ASSERT_TRUE(kcalc.key('B'));   // 1
+  TEST_ASSERT_TRUE(kcalc.key('1'));   // 11
+  TEST_ASSERT_TRUE(kcalc.key('M'));
+  TEST_ASSERT_TRUE(kcalc.key('1'));   // M1
+  TEST_ASSERT_TRUE(kcalc.key('1'));   // M11
+  TEST_ASSERT_TRUE(kcalc.key('B'));   // M1
+  TEST_ASSERT_TRUE(kcalc.key('0'));   // M10
+  TEST_ASSERT_TRUE(kcalc.key('='));   // assign
+  TEST_ASSERT_TRUE(kcalc.key('A'));   // clear
+  TEST_ASSERT_EQUAL_STRING("0", kcalc.get_display().c_str());
+  TEST_ASSERT_TRUE(kcalc.key('M'));
+  TEST_ASSERT_TRUE(kcalc.key('1'));
+  TEST_ASSERT_TRUE(kcalc.key('0'));   // M10
+  TEST_ASSERT_TRUE(kcalc.key('M'));   // recall
+  TEST_ASSERT_EQUAL_STRING("11", kcalc.get_display().c_str());
+}
+
+
 void run_key_calculator_tests() {
   RUN_TEST(test_key_add_1_plus_1);
   RUN_TEST(test_key_memory);
-  RUN_TEST(test_change_sign);
+  RUN_TEST(test_key_change_sign);
+  RUN_TEST(test_key_backspace);
 }

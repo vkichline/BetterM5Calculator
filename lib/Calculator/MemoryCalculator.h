@@ -1,6 +1,8 @@
 #pragma once
 #include "CoreCalculator.h"
 
+#define CLEAR_OPERATOR   (uint8_t('A'))
+
 // This template wraps CoreCalculator and provides memories of type T
 // There is a simple memory: memory
 // There is an array of memories: memories
@@ -95,6 +97,9 @@ template <typename T, uint8_t M> bool  MemoryCalculator<T, M>::memory_operation(
     case EVALUATE_OPERATOR:
       // M= means store Value in M
       return set_memory(CoreCalculator<T>::get_value());
+    case CLEAR_OPERATOR:
+      // MA means clear M
+      return set_memory(0.0);
     case ADDITION_OPERATOR:
       return set_memory(get_memory() + CoreCalculator<T>::get_value());
     case SUBTRACTION_OPERATOR:
@@ -119,6 +124,9 @@ template <typename T, uint8_t M> bool  MemoryCalculator<T, M>::memory_operation(
     case EVALUATE_OPERATOR:
       // M= means store Value in M
       return set_memory(index, CoreCalculator<T>::get_value());
+    case CLEAR_OPERATOR:
+      // MA means clear M
+      return set_memory(index, 0.0);
     case ADDITION_OPERATOR:
       return set_memory(index, get_memory() + CoreCalculator<T>::get_value());
     case SUBTRACTION_OPERATOR:

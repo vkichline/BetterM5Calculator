@@ -8,7 +8,7 @@ void test_key_memory_assign_M() {
   TEST_ASSERT_TRUE(kcalc.key('M'));
   TEST_ASSERT_TRUE(kcalc.key('='));   // assign 100 to M, leave 100 in value
   TEST_ASSERT_EQUAL_STRING("100", kcalc.get_display().c_str());
-  TEST_ASSERT_TRUE(kcalc.clear());
+  TEST_ASSERT_TRUE(kcalc.key('A'));   // clear
   TEST_ASSERT_EQUAL_STRING("0", kcalc.get_display().c_str());
   TEST_ASSERT_TRUE(kcalc.key('M'));
   TEST_ASSERT_TRUE(kcalc.key('M'));   // recall
@@ -29,6 +29,12 @@ void test_key_memory_M() {
   TEST_ASSERT_TRUE(kcalc.key('M'));
   TEST_ASSERT_TRUE(kcalc.key('M'));
   TEST_ASSERT_EQUAL_STRING("3.5", kcalc.get_display().c_str());
+  TEST_ASSERT_TRUE(kcalc.key('M'));
+  TEST_ASSERT_TRUE(kcalc.key('A'));   // clear memory, not display
+  TEST_ASSERT_EQUAL_STRING("3.5", kcalc.get_display().c_str());
+  TEST_ASSERT_TRUE(kcalc.key('M'));
+  TEST_ASSERT_TRUE(kcalc.key('M'));   // recall memory
+  TEST_ASSERT_EQUAL_STRING("0", kcalc.get_display().c_str());
 }
 
 

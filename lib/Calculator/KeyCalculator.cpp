@@ -1,6 +1,7 @@
 #include "KeyCalculator.h"
 
 #define DEBUG_KEY_CALCULATOR    0
+#define CHANGESIGN_OPERATOR     (uint8_t('`'))
 #define MEMORY_OPERATOR         (uint8_t('M'))
 #define BACKSPACE_OPERATOR      (uint8_t('B'))
 #define CALC_NUMERIC_PRECISION  8
@@ -25,24 +26,35 @@ String KeyCalculator::get_display() {
 }
 
 
+// Get the memory address that's being built up if _entering_memory,
+// else return an empty string.
+//
+String KeyCalculator::get_mem_spec() {
+  if(_entering_memory) {
+    return String("M") + String(_mem_buffer);
+  }
+  return String();
+}
+
+
 //  Clear (AC, the 'A' command) can be one or two keypresses
 //  Memory operations can be multiple keypresses
 //
 bool KeyCalculator::key(uint8_t code) {
   // First, see if we just pressed the AC key two times
   if('A' == _last_key && 'A' == code) {
-    return clear(true);
+    return _clear(true);
   }
 
   // Next, see if we are entering a multi-key memory command
   if(_entering_memory) {
-    return memory(code);
+    return _memory(code);
   }
 
   _last_key = code;
 
-  // Next, see if a number is being entered
-  if(('0' <= code && '9' >= code) || ('.' == code)) {
+  // Next, see if a number is being entered (with B for Backspace)
+  if(('0' <= code && '9' >= code) || ('.' == code) || 'B' == code) {
     return _build_number(code);
   }
 
@@ -58,16 +70,25 @@ bool KeyCalculator::key(uint8_t code) {
 
   // These operations require more complex handling
   switch(code) {
-    case '`':   return change_sign();
-    case 'A':   return clear(false);
-    case 'M':   return memory(code);
-    default:    return false;
+    case CHANGESIGN_OPERATOR: return _change_sign();
+    case CLEAR_OPERATOR:      return _clear(false);
+    case MEMORY_OPERATOR:     return _memory(code);
+    default:                  return false;
   }
   return false;
 }
 
 
 bool KeyCalculator::_build_number(uint8_t code) {
+  if('B' == code) {
+    // backspace one space
+    if(_num_buffer_index) {
+      _num_buffer_index--;
+      _num_buffer[_num_buffer_index] = '\0';
+      return true;
+    }
+    return false;
+  }
   if(KEY_CALCULATOR_NUM_BUFFER_SIZE <= _num_buffer_index - 1) return false;
   _num_buffer[_num_buffer_index++] = code;
   _num_buffer[_num_buffer_index]   = '\0';
@@ -96,7 +117,7 @@ String KeyCalculator::_convert_num_buffer(bool clear) {
 }
 
 
-bool KeyCalculator::clear(bool all_clear) {
+bool KeyCalculator::_clear(bool all_clear) {
   if(all_clear) {
     if(DEBUG_KEY_CALCULATOR) Serial.println("Clearing all memory");
     clear_all_memory();
@@ -110,7 +131,7 @@ bool KeyCalculator::clear(bool all_clear) {
 }
 
 
-bool KeyCalculator::change_sign() {
+bool KeyCalculator::_change_sign() {
   if(DEBUG_KEY_CALCULATOR) Serial.println("change_sign");
   if(0 < _calc.value_stack.size()) {
     if(0.0 != _calc.get_value()) {
@@ -131,13 +152,14 @@ bool KeyCalculator::change_sign() {
 // to store the value in the simple memory, or (0-9) to build a memory address for the operator:
 // MM   Recall simple memory      (M -> Value)
 // M=   Store simple memory       (Value -> M)
+// MA   Clear simple memory       (0 -> M)
 // M+   Simple memory opperation  (M + Value -> M)
 // M0=  Store into M[0]           (Value -> M[0])
 // M9=  Store into M[9]           (Value -> M[9])
 // Note that there may be 10 or thousands of memories.
 //
-bool KeyCalculator::memory(uint8_t code) {
-  if(DEBUG_KEY_CALCULATOR) Serial.printf("memory('%c')\n", code);
+bool KeyCalculator::_memory(uint8_t code) {
+  if(DEBUG_KEY_CALCULATOR) Serial.printf("_memory('%c')\n", code);
   if(!_entering_memory) {
     if(DEBUG_KEY_CALCULATOR) Serial.println("Setting _entering_memory");
     assert(MEMORY_OPERATOR == code);
@@ -145,6 +167,15 @@ bool KeyCalculator::memory(uint8_t code) {
     return true;
   }
   else {
+    // If it's a backspace, reduce the memory name buffer by one
+    if('B' == code) {
+      if(_mem_buffer_index) {
+        _mem_buffer_index--;
+        _mem_buffer[_mem_buffer_index] = '\0';
+        return true;
+      }
+      return false;
+    }
     // Build memory name if it's a number
     if(('0' <= code && '9' >= code) || ('.' == code)) {
       // Make sure the number doesn't exceed the number of memories:
@@ -179,8 +210,9 @@ bool KeyCalculator::memory(uint8_t code) {
     }
 
     // If it's a memory operation, call the memory_operation and terminate _entering_memory
-    if(ADDITION_OPERATOR  == code || SUBTRACTION_OPERATOR == code || MULTIPLICATION_OPERATOR == code ||
-       DIVISION_OPERATOR  == code || EVALUATE_OPERATOR    == code   || PRECENT_OPERATOR      == code) {
+    if(ADDITION_OPERATOR  == code || SUBTRACTION_OPERATOR == code  || MULTIPLICATION_OPERATOR == code ||
+       DIVISION_OPERATOR  == code || EVALUATE_OPERATOR    == code  || PRECENT_OPERATOR        == code ||
+       CLEAR_OPERATOR     == code) {
       if(0 == _mem_buffer_index) {
         if(DEBUG_KEY_CALCULATOR) Serial.printf("call memory_operation(Op_ID = '%c')\n\n", code);
         _calc.memory_operation(code);
