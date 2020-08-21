@@ -90,6 +90,7 @@ bool KeyCalculator::_build_number(uint8_t code) {
     return false;
   }
   if(KEY_CALCULATOR_NUM_BUFFER_SIZE <= _num_buffer_index - 1) return false;
+  if('.' == code) { if(nullptr != strchr(_num_buffer, '.')) { return false; } } // One dp per number
   _num_buffer[_num_buffer_index++] = code;
   _num_buffer[_num_buffer_index]   = '\0';
   if(DEBUG_KEY_CALCULATOR) Serial.printf("_build_number: %s\n", _num_buffer);
@@ -177,7 +178,7 @@ bool KeyCalculator::_memory(uint8_t code) {
       return false;
     }
     // Build memory name if it's a number
-    if(('0' <= code && '9' >= code) || ('.' == code)) {
+    if('0' <= code && '9' >= code) {
       // Make sure the number doesn't exceed the number of memories:
       _mem_buffer[_mem_buffer_index++] = code;
       _mem_buffer[_mem_buffer_index]   = '\0';
@@ -227,5 +228,9 @@ bool KeyCalculator::_memory(uint8_t code) {
       return true;
     }
   }
+  // Some random command? Bail out of memory mode.
+  _mem_buffer_index               = 0;
+  _mem_buffer[_mem_buffer_index]  = '\0';
+  _entering_memory                = false;
   return false;
 }
