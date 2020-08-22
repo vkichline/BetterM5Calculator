@@ -45,6 +45,7 @@ bool KeyCalculator::get_mem_entry(String* str) {
     }
     return true;
   }
+  if(str) *str = "";
   return false;
 }
 
@@ -181,6 +182,7 @@ bool KeyCalculator::_change_sign() {
 // M+   Simple memory opperation  (M + Value -> M)
 // M0=  Store into M[0]           (Value -> M[0])
 // M9=  Store into M[9]           (Value -> M[9])
+// M.   Cancel out of memory mode (N/C)
 // Note that there may be 10 or thousands of memories.
 //
 bool KeyCalculator::_memory(uint8_t code) {
@@ -192,6 +194,13 @@ bool KeyCalculator::_memory(uint8_t code) {
     return true;
   }
   else {
+    // If it's a '.', cancel _entering_memory and return true
+    if('.' == code) {
+      _mem_buffer_index = 0;
+      _mem_buffer[0]    = '\0';
+      _entering_memory  = false;
+      return true;
+    }
     // If it's a backspace, reduce the memory name buffer by one
     if('B' == code) {
       if(_mem_buffer_index) {
@@ -253,8 +262,8 @@ bool KeyCalculator::_memory(uint8_t code) {
     }
   }
   // Some random command? Bail out of memory mode.
-  _mem_buffer_index               = 0;
-  _mem_buffer[_mem_buffer_index]  = '\0';
-  _entering_memory                = false;
+  _mem_buffer_index = 0;
+  _mem_buffer[0]    = '\0';
+  _entering_memory  = false;
   return false;
 }
