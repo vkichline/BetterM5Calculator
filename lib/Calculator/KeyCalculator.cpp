@@ -31,7 +31,18 @@ String KeyCalculator::get_display() {
 //
 bool KeyCalculator::get_mem_entry(String* str) {
   if(_entering_memory) {
-    if(str) *str = String("M") + String(_mem_buffer);
+    if(str) {
+      *str = "M[";
+      switch(_mem_buffer_index) {
+        case 0: *str += "__"; break;
+        case 1: *str += "_"; *str += _mem_buffer; break;
+        case 2: *str += _mem_buffer; break;
+        default: return false;
+      }
+      *str += "]  (";
+      *str += _double_to_string(_mem_buffer_index ? _calc.get_memory(atoi(_mem_buffer)) : _calc.get_memory());
+      *str += ")";
+    }
     return true;
   }
   return false;

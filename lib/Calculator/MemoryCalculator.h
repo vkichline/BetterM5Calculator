@@ -128,16 +128,15 @@ template <typename T, uint8_t M> bool  MemoryCalculator<T, M>::memory_operation(
       // MA means clear M
       return set_memory(index, 0.0);
     case ADDITION_OPERATOR:
-      return set_memory(index, get_memory() + CoreCalculator<T>::get_value());
+      return set_memory(index, get_memory(index) + CoreCalculator<T>::get_value());
     case SUBTRACTION_OPERATOR:
-      return set_memory(index, get_memory() - CoreCalculator<T>::get_value());
+      return set_memory(index, get_memory(index) - CoreCalculator<T>::get_value());
     case MULTIPLICATION_OPERATOR:
-      return set_memory(index, get_memory() * CoreCalculator<T>::get_value());
+      return set_memory(index, get_memory(index) * CoreCalculator<T>::get_value());
     case DIVISION_OPERATOR:
-      return set_memory(index, get_memory() / CoreCalculator<T>::get_value());
+      return set_memory(index, get_memory(index) / CoreCalculator<T>::get_value());
     case PRECENT_OPERATOR:
-      // TBD BUGBUG
-      // return set_memory(index, get_memory() % CoreCalculator<T>::get_value());
+      return set_memory(index, get_memory(index) / 100.0 * CoreCalculator<T>::get_value());
     default: Serial.printf("Error in memory_operation(%c): %c unknown\n", id, id);
              return false;
   }
