@@ -88,11 +88,11 @@ bool KeyCalculator::key(uint8_t code) {
 
   // Special case for chaining:
   // If you press 1 + =, most calculators will give you 2. The rule is:
-  // When = is pressed, if _last_key was an operator (including =),
+  // When = is pressed, if _last_key was an operator (excluding =),
   // push the current value, then proceed to push = as normal.
   if(EVALUATE_OPERATOR == code) {
-    if('=' == _last_key || '+' == _last_key || '-' == _last_key ||
-       '*' == _last_key || '/' == _last_key || '%' == _last_key) {
+    if('+' == _last_key || '-' == _last_key || '*' == _last_key ||
+       '/' == _last_key || '%' == _last_key) {
       // can't use push_number() here
       enter(value());
     }
