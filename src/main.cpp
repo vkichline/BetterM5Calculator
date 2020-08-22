@@ -59,7 +59,6 @@ void display_value() {
   if(sprite.width() > wid) margin = sprite.width() - wid;
   sprite.setCursor(margin, 0);
   sprite.print(disp_value);
-Serial.println(disp_value);
   sprite.pushSprite(LEFT_MARGIN, NUM_TOP);
 }
 

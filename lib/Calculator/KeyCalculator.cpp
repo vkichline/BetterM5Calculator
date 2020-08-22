@@ -90,9 +90,11 @@ bool KeyCalculator::key(uint8_t code) {
   // If you press 1 + =, most calculators will give you 2. The rule is:
   // When = is pressed, if _last_key was an operator (excluding =),
   // push the current value, then proceed to push = as normal.
+  // Caution: % cannot be chained.
+  //
   if(EVALUATE_OPERATOR == code) {
-    if('+' == _last_key || '-' == _last_key || '*' == _last_key ||
-       '/' == _last_key || '%' == _last_key) {
+    if(ADDITION_OPERATOR       == _last_key || SUBTRACTION_OPERATOR == _last_key ||
+       MULTIPLICATION_OPERATOR == _last_key || DIVISION_OPERATOR    == _last_key) {
       // can't use push_number() here
       enter(value());
     }
@@ -110,7 +112,7 @@ bool KeyCalculator::key(uint8_t code) {
   // See if its a simple operator
   if(ADDITION_OPERATOR == code  || SUBTRACTION_OPERATOR == code || MULTIPLICATION_OPERATOR == code ||
      DIVISION_OPERATOR  == code || OPEN_PAREN_OPERATOR  == code || OPEN_PAREN_OPERATOR     == code ||
-     EVALUATE_OPERATOR  == code || PRECENT_OPERATOR     == code) {
+     EVALUATE_OPERATOR  == code || PERCENT_OPERATOR     == code) {
     if(DEBUG_KEY_CALCULATOR) Serial.printf("pushing operator '%c'\n", code);
     return enter(code);
   }
@@ -267,7 +269,7 @@ bool KeyCalculator::_memory(uint8_t code) {
 
     // If it's a memory operation, call the memory_operation and terminate _entering_memory
     if(ADDITION_OPERATOR  == code || SUBTRACTION_OPERATOR == code  || MULTIPLICATION_OPERATOR == code ||
-       DIVISION_OPERATOR  == code || EVALUATE_OPERATOR    == code  || PRECENT_OPERATOR        == code ||
+       DIVISION_OPERATOR  == code || EVALUATE_OPERATOR    == code  || PERCENT_OPERATOR        == code ||
        CLEAR_OPERATOR     == code) {
       if(0 == _mem_buffer_index) {
         if(DEBUG_KEY_CALCULATOR) Serial.printf("call memory_operation(Op_ID = '%c')\n\n", code);

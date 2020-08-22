@@ -25,7 +25,7 @@
 #define SUBTRACTION_OPERATOR      (uint8_t('-'))
 #define MULTIPLICATION_OPERATOR   (uint8_t('*'))
 #define DIVISION_OPERATOR         (uint8_t('/'))
-#define PRECENT_OPERATOR          (uint8_t('%'))
+#define PERCENT_OPERATOR          (uint8_t('%'))
 #define OPEN_PAREN_OPERATOR       (uint8_t('('))
 #define CLOSE_PAREN_OPERATOR      (uint8_t(')'))
 #define EVALUATE_OPERATOR         (uint8_t('='))            // This is a special operator that is not implemented as a class or added to _operators
@@ -184,7 +184,7 @@ class DivisionOperator : public BinaryOperator<T> {
 // Beginning of grouping does nothing, just puts a token on the stack
 template <typename T>
 class OpenParenOperator : public Operator<T> {
-  public: 
+  public:
     OpenParenOperator(CoreCalculator<T>* host) : Operator<T>(host) {
       Operator<T>::id          = OPEN_PAREN_OPERATOR;
       Operator<T>::precedence  = 250;
@@ -214,6 +214,41 @@ class CloseParenOperator : public Operator<T> {
     }
 };
 
+// The calculator % operator is unusual and more complicated than most.
+// It doesn't really make sense if T is an integer.
+// If no operator on stack, divide Value by T(100)
+// In other words, 30 %  ==>  30 / T(100)
+// If +, -, * or / on stack, +-*/ value % from stack
+// In other words, 30 + 5 %  ==>  30 + 30 * 5 / T(100)
+//
+template <typename T>
+class PercentOperator : public Operator<T> {
+  public:
+    PercentOperator(CoreCalculator<T>* host) : Operator<T>(host) {
+      Operator<T>::id          = PERCENT_OPERATOR;
+      Operator<T>::precedence  = 100;
+    }
+    bool    enough_values() { return (1 <= Operator<T>::_host->value_stack.size()); }
+    Op_Err  operate() {
+      // If only the % operator is on the Operator_stack
+      if(0 == Operator<T>::_host->operator_stack.size()) {
+        Operator<T>::_host->push_operator('/');
+        Operator<T>::_host->push_value(T(100));
+      }
+      else {
+        // BUGBUG: HOW SHOULD 30 / 6 % = ACT?
+        T temp = Operator<T>::_host->pop_value();
+        Operator<T>::_host->push_value(Operator<T>::_host->get_value());
+        Operator<T>::_host->push_operator('*');
+        Operator<T>::_host->push_value(temp);
+        Operator<T>::_host->push_operator('/');
+        Operator<T>::_host->push_value(T(100));
+      }
+      return NO_ERROR;
+    }
+};
+
+
 ////////////////////////////////////////////////////////////////////////////////
 //
 //  CoreCalculator Implementation
@@ -225,8 +260,11 @@ template <typename T> CoreCalculator<T>::CoreCalculator() {
 }
 
 // Push a value onto the stack to be processed later.
+// It's not obvious, but if the operator_stack is empty, the value_stack should be cleared.
+// Otherwise, 1+1= 1+1= 1+1= results in a useless value_stack containing [2 2 2]
 //
 template <typename T> bool CoreCalculator<T>::push_value(T value) {
+  if(0 == operator_stack.size()) value_stack.clear();
   value_stack.push_back(value);
   return true;
 }
@@ -364,6 +402,7 @@ template <typename T> void CoreCalculator<T>::_initialize_operators() {
   _operators.insert(std::pair<Op_ID, Operator<T>*>(DIVISION_OPERATOR,       new DivisionOperator<T>(this)));
   _operators.insert(std::pair<Op_ID, Operator<T>*>(OPEN_PAREN_OPERATOR,     new OpenParenOperator<T>(this)));
   _operators.insert(std::pair<Op_ID, Operator<T>*>(CLOSE_PAREN_OPERATOR,    new CloseParenOperator<T>(this)));
+  _operators.insert(std::pair<Op_ID, Operator<T>*>(PERCENT_OPERATOR,        new PercentOperator<T>(this)));
 }
 
 // Writes operator_stack and value_stack to Serial for debugging
