@@ -16,6 +16,8 @@ class KeyCalculator : public TextCalculator {
     bool    key(uint8_t code);
     String  get_display();
     bool    get_mem_entry(String* str);
+    String  get_operator_stack();
+    String  get_value_stack();
   protected:
     char    _num_buffer[KEY_CALCULATOR_NUM_BUFFER_SIZE] = {0};
     char    _mem_buffer[KEY_CALCULATOR_MEM_BUFFER_SIZE] = {0};

@@ -28,6 +28,13 @@
 #define MEM_FG_COLOR          BLUE
 #define MEM_BG_COLOR          BG_COLOR
 
+#define STACK_TOP             175
+#define STACK_HEIGHT          32
+#define STACK_V_MARGIN        4
+#define STACK_FONT            2
+#define STACK_FG_COLOR        BLUE
+#define STACK_BG_COLOR        BG_COLOR
+
 #define BUTTONS_NORMAL        "< # ? # ^"
 #define BUTTONS_MEM_MODE      "get # M # set # = # clear # AC"
 
@@ -70,6 +77,23 @@ void display_memory_storage() {
 }
 
 
+// Show the memory location we're building up (M, Mn, Mnn)
+//
+void display_stacks() {
+  String op_stack  = calc.get_operator_stack();
+  String val_stack = calc.get_value_stack();
+  M5.Lcd.fillRect(0, STACK_TOP, SCREEN_WIDTH, STACK_HEIGHT,STACK_BG_COLOR);
+  if(3 < op_stack.length() || 3 < val_stack.length()) {
+    M5.Lcd.setTextFont(STACK_FONT);
+    M5.Lcd.setTextColor(STACK_FG_COLOR, STACK_BG_COLOR);  // Blank space erases background w/ background color set
+    M5.Lcd.drawString(op_stack.c_str(), LEFT_MARGIN, STACK_TOP + STACK_V_MARGIN, STACK_FONT);
+    M5.Lcd.setTextDatum(TR_DATUM);
+    M5.Lcd.drawString(val_stack.c_str(), SCREEN_WIDTH - RIGHT_MARGIN, STACK_TOP + STACK_V_MARGIN, STACK_FONT);
+    M5.Lcd.setTextDatum(TL_DATUM);
+  }
+}
+
+
 // Set the buttons at the bottom of the screen appropriately, depending on the mode
 //
 void set_buttons() {
@@ -88,7 +112,8 @@ void display_all() {
   display_value();
   display_memory_storage();
   set_buttons();
-  ez.header.show("Calculator");                // restore the header after its been reused
+  display_stacks();
+  ez.header.show("Calculator");   // restore the header after its been reused
   ez.yield();
 }
 
@@ -168,6 +193,7 @@ void setup() {
   Wire.begin();
   pinMode(KEYBOARD_INT, INPUT_PULLUP);
   sprite.createSprite(SCREEN_WIDTH - LEFT_MARGIN - RIGHT_MARGIN, NUM_HEIGHT);
+  M5.Lcd.setTextSize(1);
   display_all();
 }
 

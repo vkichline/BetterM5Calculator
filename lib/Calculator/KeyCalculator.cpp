@@ -1,6 +1,6 @@
 #include "KeyCalculator.h"
 
-#define DEBUG_KEY_CALCULATOR    1
+#define DEBUG_KEY_CALCULATOR    0
 #define CHANGESIGN_OPERATOR     (uint8_t('`'))
 #define MEMORY_OPERATOR         (uint8_t('M'))
 #define BACKSPACE_OPERATOR      (uint8_t('B'))
@@ -47,6 +47,28 @@ bool KeyCalculator::get_mem_entry(String* str) {
   }
   if(str) *str = "";
   return false;
+}
+
+
+String KeyCalculator::get_operator_stack() {
+  String result = "[ ";
+  for(int i = 0; i < _calc.operator_stack.size(); i++) {
+    result += char(_calc.operator_stack[i]);
+    result += " ";
+  }
+  result += "]";
+  return result;
+}
+
+
+String KeyCalculator::get_value_stack() {
+  String result = "[ ";
+  for(int i = 0; i < _calc.value_stack.size(); i++) {
+    result += _double_to_string(_calc.value_stack[i]);
+    result += " ";
+  }
+  result += "]";
+  return result;
 }
 
 
