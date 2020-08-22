@@ -10,15 +10,18 @@
 #define FG_COLOR              BLACK         // Arbitrary foreground color
 #define BG_COLOR              0xEF7D        // Arbitrary background color
 
-#define NUM_TOP              36             // Top of the number display, where the sum is shown
-#define NUM_HEIGHT           52             // Height of the number display
-#define NUM_V_MARGIN         4              // Offset from top to top text
-#define NUM_H_MARGIN         16             // Left/right margin of the number
-#define NUM_FONT             6              // Preferred number font
-#define NUM_FG_COLOR         FG_COLOR       // Number display foreground color
-#define NUM_BG_COLOR         BG_COLOR       // Number display background color
+#define LEFT_MARGIN           8
+#define RIGHT_MARGIN          8
 
-#define MEM_TOP               88            // Top of the memory storage display
+#define NUM_TOP               36            // Top of the number display, where the sum is shown
+#define NUM_HEIGHT            104           // Height of the number display
+#define NUM_V_MARGIN          4             // Offset from top to top text
+#define NUM_H_MARGIN          16            // Left/right margin of the number
+#define NUM_FONT              6             // Preferred number font
+#define NUM_FG_COLOR          FG_COLOR      // Number display foreground color
+#define NUM_BG_COLOR          BG_COLOR      // Number display background color
+
+#define MEM_TOP               125           // Top of the memory storage display
 #define MEM_HEIGHT            32            // Height of the memory storage display
 #define MEM_V_MARGIN          4             // Offset from top to top text
 #define MEM_FONT              4
@@ -30,18 +33,27 @@
 
 
 KeyCalculator calc;
+TFT_eSprite   sprite = TFT_eSprite(&M5.Lcd);
 
 
-// Main dispaly; show the number being entered or the current evaluation value
+// Main display; show the number being entered or the current evaluation value.
+// Since the number can be wider than the display, and text wrapping always wraps to zero,
+// and I want a left margin, I must use a sprite to render then number.
 //
 void display_value() {
-  M5.Lcd.setTextFont(NUM_FONT);
-  String disp_value = calc.get_display();           // Input in progress, or value
-  M5.Lcd.fillRect(0, NUM_TOP, SCREEN_WIDTH, NUM_HEIGHT, NUM_BG_COLOR);
-  M5.Lcd.setTextColor(NUM_FG_COLOR, NUM_BG_COLOR);  // Blank space erases background w/ background color set
-  M5.Lcd.setTextDatum(TR_DATUM);                    // Print right-justified, relative to end of string
-  M5.Lcd.drawString(disp_value, SCREEN_WIDTH - NUM_H_MARGIN, NUM_TOP + NUM_V_MARGIN, 6);
-  M5.Lcd.setTextDatum(TL_DATUM);                    // Go back to normal text alignment
+  sprite.fillSprite(NUM_BG_COLOR);
+  sprite.setTextFont(NUM_FONT);
+  sprite.setTextColor(NUM_FG_COLOR, NUM_BG_COLOR);  // Blank space erases background w/ background color set
+  sprite.setTextWrap(true);
+
+  String   disp_value = calc.get_display();
+  uint16_t margin     = 0;
+  uint16_t wid        = sprite.textWidth(disp_value);
+  if(sprite.width() > wid) margin = sprite.width() - wid;
+  sprite.setCursor(margin, 0);
+  sprite.print(disp_value);
+Serial.println(disp_value);
+  sprite.pushSprite(LEFT_MARGIN, NUM_TOP);
 }
 
 
@@ -155,7 +167,7 @@ void setup() {
   ez.begin();
   Wire.begin();
   pinMode(KEYBOARD_INT, INPUT_PULLUP);
-  M5.Lcd.setTextSize(1);
+  sprite.createSprite(SCREEN_WIDTH - LEFT_MARGIN - RIGHT_MARGIN, NUM_HEIGHT);
   display_all();
 }
 
