@@ -30,6 +30,7 @@ void loop() {
   run_key_calculator_tests();
   run_key_memory_tests();
   run_key_number_tests();
+  run_key_chaining_tests();
 
   UNITY_END();  // stop unit testing
 }

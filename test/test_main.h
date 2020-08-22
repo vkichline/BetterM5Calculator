@@ -25,5 +25,6 @@ void run_parser_tests();            // Tests from test_parser.cpp
 void run_key_calculator_tests();    // Tests from test_key_calculator.cpp
 void run_key_memory_tests();        // Tests from test_key_memory.cpp
 void run_key_number_tests();        // Tests from test_key_numbers.cpp
+void run_key_chaining_tests();      // Tests from test_key_chaining.cpp
 
 // Don't forget to add your new test to test_main.cpp's loop() function. Again.

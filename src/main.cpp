@@ -26,7 +26,7 @@
 #define MEM_BG_COLOR          BG_COLOR
 
 #define BUTTONS_NORMAL        "< # ? # ^"
-#define BUTTONS_MEM_MODE      "get # set # clear"
+#define BUTTONS_MEM_MODE      "get # M # set # = # clear # AC"
 
 
 KeyCalculator calc;
@@ -86,6 +86,7 @@ void display_all() {
 void more_menu() {
   ezMenu menu("More Functions");
   menu.txtSmall();
+  menu.buttons("up # back # select ## down #");
   menu.addItem("Square");
   menu.addItem("Square Root");
   menu.addItem("Inverse");
@@ -137,6 +138,9 @@ bool process_input() {
     if     (result == "get")    calc.key('M');  // In memory mode: retrieve
     else if(result == "set")    calc.key('=');  // In memory mode: st
     else if(result == "clear")  calc.key('A');  // In memory mode: clear
+    if     (result == "M")      calc.key('M');  // In memory mode: retrieve
+    else if(result == "=")      calc.key('=');  // In memory mode: st
+    else if(result == "AC")     calc.key('A');  // In memory mode: clear
     else if(result == "<")      calc.key('B');  // KeyCalculator command for backspace
     else if(result == "?")      info_screen();
     else if(result == "^")      more_menu();

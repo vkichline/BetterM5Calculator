@@ -1,6 +1,6 @@
 #include "KeyCalculator.h"
 
-#define DEBUG_KEY_CALCULATOR    0
+#define DEBUG_KEY_CALCULATOR    1
 #define CHANGESIGN_OPERATOR     (uint8_t('`'))
 #define MEMORY_OPERATOR         (uint8_t('M'))
 #define BACKSPACE_OPERATOR      (uint8_t('B'))
@@ -61,6 +61,18 @@ bool KeyCalculator::key(uint8_t code) {
   // Next, see if we are entering a multi-key memory command
   if(_entering_memory) {
     return _memory(code);
+  }
+
+  // Special case for chaining:
+  // If you press 1 + =, most calculators will give you 2. The rule is:
+  // When = is pressed, if _last_key was an operator (including =),
+  // push the current value, then proceed to push = as normal.
+  if(EVALUATE_OPERATOR == code) {
+    if('=' == _last_key || '+' == _last_key || '-' == _last_key ||
+       '*' == _last_key || '/' == _last_key || '%' == _last_key) {
+      // can't use push_number() here
+      enter(value());
+    }
   }
 
   _last_key = code;
