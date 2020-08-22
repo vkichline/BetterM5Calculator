@@ -29,5 +29,7 @@ void loop() {
   run_parser_tests();
   run_key_calculator_tests();
   run_key_memory_tests();
+  run_key_number_tests();
+
   UNITY_END();  // stop unit testing
 }
