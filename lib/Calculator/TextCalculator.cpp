@@ -80,7 +80,7 @@ void TextCalculator::clear_all_memory() {
 String TextCalculator::_double_to_string(double val) {
   if(0.0 == val) return String("0");
   double  threshold   = 1.0 / pow(10.0, _precision);  // Precision is a private member variable
-  int     m           = log10(abs(val));
+  int     m           = log10(ceil(abs(val)));
   char    buffer[64]  = {0};
   int     digit       = 0;
   char*   p           = buffer;
@@ -100,8 +100,7 @@ String TextCalculator::_double_to_string(double val) {
   }
   // if the last character is a '.', delete it
   if('.' == *(p-1)) *(p-1) = '\0';
-  // I have seen this return an empty string in tests when passed 0.0 (after a clear all operation)
-  return ('\0' == buffer[0]) ? String("0") : String(buffer);
+  return String(buffer);
 }
 
 double TextCalculator::_string_to_double(const char* val) {
