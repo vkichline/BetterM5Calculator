@@ -29,11 +29,12 @@ String KeyCalculator::get_display() {
 // Get the memory address that's being built up if _entering_memory,
 // else return an empty string.
 //
-String KeyCalculator::get_mem_spec() {
+bool KeyCalculator::get_mem_entry(String* str) {
   if(_entering_memory) {
-    return String("M") + String(_mem_buffer);
+    if(str) *str = String("M") + String(_mem_buffer);
+    return true;
   }
-  return String();
+  return false;
 }
 
 

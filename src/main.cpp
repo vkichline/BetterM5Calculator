@@ -25,6 +25,9 @@
 #define MEM_FG_COLOR          BLUE
 #define MEM_BG_COLOR          BG_COLOR
 
+#define BUTTONS_NORMAL        "< # ? # ^"
+#define BUTTONS_MEM_MODE      "get # set # clear"
+
 
 KeyCalculator calc;
 
@@ -45,15 +48,63 @@ void display_value() {
 // Show the memory location we're building up (M, Mn, Mnn)
 //
 void display_memory_storage() {
+  String disp_value;
   M5.Lcd.setTextFont(MEM_FONT);
-  String disp_value = calc.get_mem_spec();
   M5.Lcd.fillRect(0, MEM_TOP, SCREEN_WIDTH, MEM_HEIGHT, MEM_BG_COLOR);
-  M5.Lcd.setTextColor(MEM_FG_COLOR, MEM_BG_COLOR);  // Blank space erases background w/ background color set
-  M5.Lcd.drawCentreString(disp_value, SCREEN_H_CENTER, MEM_TOP + MEM_V_MARGIN, MEM_FONT);
+  if(calc.get_mem_entry(&disp_value)) {
+    M5.Lcd.setTextColor(MEM_FG_COLOR, MEM_BG_COLOR);  // Blank space erases background w/ background color set
+    M5.Lcd.drawCentreString(disp_value.c_str(), SCREEN_H_CENTER, MEM_TOP + MEM_V_MARGIN, MEM_FONT);
+  }
 }
 
 
-//  Return true and change ref to input char if key is available, otherwise returns false.
+// Set the buttons at the bottom of the screen appropriately, depending on the mode
+//
+void set_buttons() {
+  if(calc.get_mem_entry(nullptr)) {
+    ez.buttons.show(BUTTONS_MEM_MODE);
+  }
+  else {
+    ez.buttons.show(BUTTONS_NORMAL);
+  }
+}
+
+
+// This is expected to get more complicated and smarter
+//
+void display_all() {
+  display_value();
+  display_memory_storage();
+  set_buttons();
+  ez.header.show("Calculator");                // restore the header after its been reused
+  ez.yield();
+}
+
+
+// Someday this will be a real settings menu
+//
+void more_menu() {
+  ezMenu menu("More Functions");
+  menu.txtSmall();
+  menu.addItem("Square");
+  menu.addItem("Square Root");
+  menu.addItem("Inverse");
+  menu.addItem("PI");
+  menu.addItem("e");
+  menu.addItem("Show Memory");
+  menu.addItem("Settings");
+  menu.runOnce();
+}
+
+
+// Respond to the "?" button with some instructions
+//
+void info_screen() {
+  ez.textBox("Info", "Someday this will tell you how to use this calculator.", true);
+}
+
+
+//  Return true and change ref to input char if key is available, otherwise return false.
 //
 bool read_key(char& input) {
   if(digitalRead(KEYBOARD_INT) == LOW) {      // If a character is ready
@@ -70,37 +121,6 @@ bool read_key(char& input) {
 }
 
 
-// This is expected to get more complicated and smarter
-//
-void display_all() {
-  display_value();
-  display_memory_storage();
-  ez.header.show();
-  ez.yield();
-}
-
-
-// Someday this will be a real settings menu
-//
-void settings_menu() {
-  ezMenu menu("Settings");
-  menu.txtSmall();
-  menu.addItem("Someday");
-  menu.addItem("this");
-  menu.addItem("will");
-  menu.addItem("be");
-  menu.addItem("a");
-  menu.addItem("settings");
-  menu.addItem("menu");
-  menu.runOnce();
-}
-
-
-void info_screen() {
-  ez.textBox("Info", "Someday this will tell you how to use this calculator.", true);
-}
-
-
 //  Read a key from the keyboard, or a button from the M5Stack.
 //
 bool process_input() {
@@ -114,22 +134,13 @@ bool process_input() {
   }
   String result = ez.buttons.poll();
   if(result.length()) {
-    if(result == "bkspc") {
-      calc.key('B');
-      display_all();
-    }
-    else if(result == "info") {
-      info_screen();
-      ez.buttons.show("settings # info # bkspc");  // buttons need to be re-created after a textBox
-      ez.header.show("Calculator");                // restore the header after its been reused
-      display_all();
-    }
-    else if(result == "settings") {
-      settings_menu();
-      ez.buttons.show("settings # info # bkspc");  // buttons need to be re-created after a menu
-      ez.header.show("Calculator");                // restore the header after its been reused
-      display_all();
-    }
+    if     (result == "get")    calc.key('M');  // In memory mode: retrieve
+    else if(result == "set")    calc.key('=');  // In memory mode: st
+    else if(result == "clear")  calc.key('A');  // In memory mode: clear
+    else if(result == "<")      calc.key('B');  // KeyCalculator command for backspace
+    else if(result == "?")      info_screen();
+    else if(result == "^")      more_menu();
+    display_all();
     return true;
   }
   return false;
@@ -140,9 +151,8 @@ void setup() {
   ez.begin();
   Wire.begin();
   pinMode(KEYBOARD_INT, INPUT_PULLUP);
-  ez.header.show("Calculator");
-  ez.buttons.show("settings # info # bkspc");
-  display_value();
+  M5.Lcd.setTextSize(1);
+  display_all();
 }
 
 
