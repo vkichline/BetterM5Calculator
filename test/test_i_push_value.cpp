@@ -3,7 +3,7 @@
 
 void test_i_push_value() {
   int32_t result;
-  TEST_ASSERT_TRUE(icalc.push_value(123));
+  TEST_ASSERT_EQUAL(NO_ERROR, icalc.push_value(123));
   result = icalc.peek_value();
   TEST_ASSERT_EQUAL(123, result);
   TEST_ASSERT_EQUAL(123, icalc.get_value());
@@ -24,7 +24,6 @@ void test_i_push_3() {
   icalc.push_value(3);
   TEST_ASSERT_EQUAL(3, icalc.get_value());
   TEST_ASSERT_EQUAL(3, icalc.value_stack.size());
-
   TEST_ASSERT_EQUAL(3, icalc.pop_value());
   TEST_ASSERT_EQUAL(2, icalc.pop_value());
   TEST_ASSERT_EQUAL(1, icalc.pop_value());

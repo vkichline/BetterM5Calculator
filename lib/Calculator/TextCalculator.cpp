@@ -12,9 +12,13 @@ TextCalculator::TextCalculator(uint8_t precision) {
   _wspace     = { ' ', '\t', '\n', '\r' };
 }
 
+// It's not obvious, but if the operator_stack is empty, the value_stack should be cleared.
+// Otherwise, 1+1= 1+1= 1+1= results in a useless value_stack containing [2 2 2]
+//
 bool TextCalculator::enter(const char* value) {
+  if(0 == _calc.operator_stack.size()) _calc.value_stack.clear();
   double val = _string_to_double(value);
-  return _calc.push_value(val);
+  return NO_ERROR == _calc.push_value(val);
 }
 
 bool TextCalculator::enter(String value) {
@@ -22,7 +26,7 @@ bool TextCalculator::enter(String value) {
 }
 
 bool TextCalculator::enter(Op_ID id) {
-  return _calc.push_operator(id);
+  return (NO_ERROR == _calc.push_operator(id));
 }
 
 Op_Err TextCalculator::total() {

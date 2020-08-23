@@ -212,7 +212,7 @@ bool KeyCalculator::_clear(bool all_clear) {
   }
   else {
     if(DEBUG_KEY_CALCULATOR) Serial.println("Clearing value");
-    return _calc.clear();
+    return (NO_ERROR == _calc.clear());
   }
   return false;
 }

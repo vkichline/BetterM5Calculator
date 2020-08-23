@@ -2,16 +2,17 @@
 
 // This is a template for a no-frills, core calculator engine that handles any numeric type.
 // It uses the shunting-yard algorithm to process infix notification, so operations can be pushed as
-// one would enter them on an ordinary calculator: Push 1, Push +, Push 1, Eval, the stack contains 1.
-// It's expected that one would derive more functional, text or key based calculators derived from this.
-// This implementation features plug-in operators so that the set of operators can easily be extended.
+// one would enter them on an ordinary calculator: Push 1, Push +, Push 1, Eval, the stack contains 2.
+// This implementation features plug-in operators so that the set of provided operators can easily be extended.
 //
 // By Van Kichline
 // In the year of the plague
 
+
 #include <vector>
 #include <map>
 #include <Arduino.h>
+
 
 #define OP_ID_NONE                 0                        // Result of popping an empty operator_stack
 #define NO_ERROR                   0                        // Good result from a calculation
@@ -36,39 +37,41 @@ typedef int16_t                   Op_Err;                   // Signed error; 0 i
 typedef uint16_t                  Op_ID;                    // Operators are normally identified by a single char like '+'. More may be needed.
 
 
+// Tempate for the lowest level of the calculator engine, which manages evaluation of the operator_stack and value_stack.
+// Using the shunting-yard algorithm, values and operators can be pushed in the order of ordinary infix notation (1 + 1).
+//
 template <typename T>
 class CoreCalculator {
   public:
     CoreCalculator();
-    bool                          push_value(T value);      // Enter a raw value value in base 10, regardless of num_mode, and push it onto the value_stack
+    Op_Err                        push_value(T value);      // Push a value onto the value_stack
     T                             pop_value();              // Return the top value of the value_stack after removing it from the stack
     T                             peek_value();             // Return the top value of the value_stack without changing the stack
-    bool                          push_operator(Op_ID id);  // Push an operator onto the operator_stack (may cause evaluation of lower precedence items on stack)
+    Op_Err                        push_operator(Op_ID id);  // Push an operator onto the operator_stack (may cause evaluation of higher precedence items on stack)
     Op_ID                         pop_operator();           // Return the top value of the operator_stack after removing it from the stack (OP_ID_NONE if empty)
     Op_ID                         peek_operator();          // Return the top value of the operator_stack without changing the stack (OP_ID_NONE if empty)
     Op_Err                        evaluate_one();           // Evaluate the top operator on the operator_stack (if any)
-    Op_Err                        evaluate();               // Evaluate the operator_stack until its empty and there's only one operand (=)
+    Op_Err                        evaluate();               // Evaluate the operator_stack until its empty
     T                             get_value();              // Top of the operand_stack, or 0.0 if stack is empty
-    bool                          clear();                  // Change value to zero
+    Op_Err                        clear();                  // Change value to zero
     std::vector<T>                value_stack;              // Pushdown stack for values. Unfortunately, <stack> is broken
     std::vector<Op_ID>            operator_stack;           // pushdown stack for operators
   protected:
-    void                          _initialize_operators();  // Put Operators in _operators map
+    void                          _initialize_operators();  // Fill the _operators map with instances of available Operators
     std::map<Op_ID, Operator<T>*> _operators;               // A map of all the operators (extensible!)
-    void                          _spew_stacks();           // Writes operator_stack and value_stack to Serial
+    void                          _spew_stacks();           // Writes operator_stack and value_stack to Serial port for debugging
 };
 
 
 // Base class for all other operators. This approach makes operators extensible.
 // Operator precedence: highest numbers are highest precedence. Values are unsigned 8 bits.
 // Grouping   250   - pairs of (), [], etc.
-// + -        200   - unary + and - prefixes
+// + -        200   - unary + and - prefixes (not currently used)
 // exp root   150   - exponents and roots
 // * / MOD    100   - multiplication, division and modulus
 // + -         50   - addition and subtraction
-// Evaluate     0   - always evaluate
+// Evaluate     0   - always evaluate (not an operator; handled in push_operator)
 //
-// When operate() is called, the operator will already be popped off the operator_stack.
 // The Operator must pop the operands, but not the operator.
 //
 template <typename T>
@@ -80,7 +83,7 @@ class Operator {
     virtual bool      enough_values()   = 0;          // Override to determine if there are enough operands on the _operand_stack
     virtual Op_Err    operate()         = 0;          // Override to do what the operator does
   protected:
-    CoreCalculator<T>*  _host;
+    CoreCalculator<T>*  _host;                        // for calling CoreCalculator<T> functions from the operator
 };
 
 
@@ -111,19 +114,17 @@ class BinaryOperator: public Operator<T> {
     }
     // Call this function to set up member variables before evaluation
     Op_Err prepare() {
-      err = ERROR_TOO_FEW_OPERANDS;
       if(enough_values()) {
         op1 = Operator<T>::_host->pop_value();
         op2 = Operator<T>::_host->pop_value();
-        err = NO_ERROR;
+        return NO_ERROR;
       }
-      return err;
+      return ERROR_TOO_FEW_OPERANDS;
     }
     // This expects err to be set by the call to prepare. Pattern is:
     Op_Err push_result(double result) {
       if(NO_ERROR == err) {
-        Operator<T>::_host->push_value(result);
-        return NO_ERROR;
+        return Operator<T>::_host->push_value(result);
       }
       return err;
     }
@@ -260,13 +261,10 @@ template <typename T> CoreCalculator<T>::CoreCalculator() {
 }
 
 // Push a value onto the stack to be processed later.
-// It's not obvious, but if the operator_stack is empty, the value_stack should be cleared.
-// Otherwise, 1+1= 1+1= 1+1= results in a useless value_stack containing [2 2 2]
 //
-template <typename T> bool CoreCalculator<T>::push_value(T value) {
-  if(0 == operator_stack.size()) value_stack.clear();
+template <typename T> Op_Err CoreCalculator<T>::push_value(T value) {
   value_stack.push_back(value);
-  return true;
+  return NO_ERROR;
 }
 
 // Return the top value from the stack and pop it off.
@@ -285,17 +283,18 @@ template <typename T> T CoreCalculator<T>::peek_value() {
 
 // Push an operator onto the operator_stack.
 // The operator must exist in _operators.
-// Shunting-yard algorithm for evaluating infix notation (ref: Dijkstra)
+// Shunting-yard algorithm for evaluating infix notation (ref: Dijkstra):
 // If the operator on the operator_stack is the same or greater precedence
 // than this operator, evaluate it first.
 //
-template <typename T> bool CoreCalculator<T>::push_operator(Op_ID id) {
+template <typename T> Op_Err CoreCalculator<T>::push_operator(Op_ID id) {
+  Op_Err result = NO_ERROR;
   // The EVALUATE_OPERATOR is handled specially here. It's not in _operators
   if(EVALUATE_OPERATOR == id) {
     if(DEBUG_OPERATORS) Serial.println("\nOperator = : evaluating the entire stack\n");
-    Op_Err result =  evaluate();
+    result =  evaluate();
     if(DEBUG_OPERATORS) Serial.printf("evaluate() returned %d\n", result);
-    return (NO_ERROR == result);
+    return result;
   }
   if(DEBUG_OPERATORS) Serial.printf("\nPushing operator %c\n", id);
   if(_operators.count(id)) {  // If it's a valid operator
@@ -308,13 +307,14 @@ template <typename T> bool CoreCalculator<T>::push_operator(Op_ID id) {
       Operator<T>* top_op = _operators[top];
       if(top_op->precedence < incoming->precedence) break;
       if(DEBUG_OPERATORS) Serial.printf("Forcing operator %c\n", top);
-      if(evaluate_one()) return false;
+      result = evaluate_one();
+      if(result) return result;
       if(DEBUG_OPERATORS) Serial.println("Forced operation successful\n");
     }
     operator_stack.push_back(id);
-    return true;
+    return result;
   }
-  return false;
+  return ERROR_UNKNOWN_OPERATOR;
 }
 
 // Return the top value of the operator_stack after popping it.
@@ -360,10 +360,10 @@ template <typename T> T CoreCalculator<T>::get_value() {
 
 // Set the value to zero. Do not change size of the stack unless it's empty,
 //
-template <typename T> bool CoreCalculator<T>::clear() {
+template <typename T> Op_Err CoreCalculator<T>::clear() {
   if(0 != value_stack.size()) value_stack.pop_back();
   value_stack.push_back(T(0));
-  return true;
+  return NO_ERROR;
 }
 
 // Evaluate the top operator on the operator_stack (if any)
@@ -393,7 +393,7 @@ template <typename T> Op_Err CoreCalculator<T>::evaluate_one() {
 
 // Place all the operators we plan to use in the _operators vector.
 // This design makes it trivial to add additional operators.
-// Note: OP_ID_NONE is not put in _operators, by design.
+// Note: OP_ID_NONE and EVALUATE_OPERATOR is not put in _operators, by design.
 //
 template <typename T> void CoreCalculator<T>::_initialize_operators() {
   _operators.insert(std::pair<Op_ID, Operator<T>*>(ADDITION_OPERATOR,       new AdditionOperator<T>(this)));

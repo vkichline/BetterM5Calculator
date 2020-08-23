@@ -6,15 +6,15 @@
 // = 12.5 - 66.3 - 16.8 =
 // = -70.6
 void test_dp_all_operators() {
-  TEST_ASSERT_TRUE(dpcalc.push_value(12.5));
-  TEST_ASSERT_TRUE(dpcalc.push_operator('+'));
-  TEST_ASSERT_TRUE(dpcalc.push_value(331.5));
-  TEST_ASSERT_TRUE(dpcalc.push_operator('/'));
-  TEST_ASSERT_TRUE(dpcalc.push_value(-5));
-  TEST_ASSERT_TRUE(dpcalc.push_operator('-'));
-  TEST_ASSERT_TRUE(dpcalc.push_value(3.5));
-  TEST_ASSERT_TRUE(dpcalc.push_operator('*'));
-  TEST_ASSERT_TRUE(dpcalc.push_value(4.8));
+  TEST_ASSERT_EQUAL(NO_ERROR, dpcalc.push_value(12.5));
+  TEST_ASSERT_EQUAL(NO_ERROR, dpcalc.push_operator('+'));
+  TEST_ASSERT_EQUAL(NO_ERROR, dpcalc.push_value(331.5));
+  TEST_ASSERT_EQUAL(NO_ERROR, dpcalc.push_operator('/'));
+  TEST_ASSERT_EQUAL(NO_ERROR, dpcalc.push_value(-5));
+  TEST_ASSERT_EQUAL(NO_ERROR, dpcalc.push_operator('-'));
+  TEST_ASSERT_EQUAL(NO_ERROR, dpcalc.push_value(3.5));
+  TEST_ASSERT_EQUAL(NO_ERROR, dpcalc.push_operator('*'));
+  TEST_ASSERT_EQUAL(NO_ERROR, dpcalc.push_value(4.8));
   TEST_ASSERT_EQUAL(NO_ERROR, dpcalc.evaluate());
   TEST_ASSERT_EQUAL_DOUBLE(-70.6, dpcalc.pop_value());
   TEST_ASSERT_EQUAL(0, dpcalc.operator_stack.size());
@@ -44,10 +44,10 @@ void test_dp_parens() {
 
 // 1 + 1 = (testing the = operator)
 void test_dp_evaluate() {
-  TEST_ASSERT_TRUE(dpcalc.push_value(1));
-  TEST_ASSERT_TRUE(dpcalc.push_operator('+'));
-  TEST_ASSERT_TRUE(dpcalc.push_value(1));
-  TEST_ASSERT_TRUE(dpcalc.push_operator('='));
+  TEST_ASSERT_EQUAL(NO_ERROR, dpcalc.push_value(1));
+  TEST_ASSERT_EQUAL(NO_ERROR, dpcalc.push_operator('+'));
+  TEST_ASSERT_EQUAL(NO_ERROR, dpcalc.push_value(1));
+  TEST_ASSERT_EQUAL(NO_ERROR, dpcalc.push_operator('='));
   TEST_ASSERT_EQUAL(2, dpcalc.peek_value());
   TEST_ASSERT_EQUAL(2, dpcalc.pop_value());
   TEST_ASSERT_EQUAL(0, dpcalc.operator_stack.size());
