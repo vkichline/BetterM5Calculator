@@ -13,7 +13,14 @@
 #define LEFT_MARGIN           11
 #define RIGHT_MARGIN          11
 
-#define NUM_TOP               36            // Top of the number display, where the sum is shown
+#define STAT_TOP              24
+#define STAT_HEIGHT           20
+#define STAT_FONT             2
+#define STAT_LEFT_MARGIN      8
+#define STAT_FG_COLOR         BLUE
+#define STAT_BG_COLOR         BG_COLOR
+
+#define NUM_TOP               44            // Top of the number display, where the sum is shown
 #define NUM_HEIGHT            96            // Height of the number display
 #define NUM_V_MARGIN          4             // Offset from top to top text
 #define NUM_H_MARGIN          16            // Left/right margin of the number
@@ -28,8 +35,8 @@
 #define MEM_FG_COLOR          BLUE
 #define MEM_BG_COLOR          BG_COLOR
 
-#define STACK_TOP             175
-#define STACK_HEIGHT          32
+#define STACK_TOP             185
+#define STACK_HEIGHT          24
 #define STACK_V_MARGIN        4
 #define STACK_FONT            2
 #define STACK_FG_COLOR        BLUE
@@ -42,6 +49,16 @@
 KeyCalculator calc;
 TFT_eSprite   sprite = TFT_eSprite(&M5.Lcd);
 
+
+// Display the status of memory etc(?) in small text above value
+//
+void display_status() {
+  M5.Lcd.setTextFont(STAT_FONT);
+  M5.Lcd.setTextDatum(TL_DATUM);
+  M5.Lcd.setTextColor(STAT_FG_COLOR, STAT_BG_COLOR);  // Blank space erases background w/ background color set
+  M5.Lcd.fillRect(0, STAT_TOP, SCREEN_WIDTH, STAT_HEIGHT, STAT_BG_COLOR);
+  M5.Lcd.drawString(calc.get_mem_display(), STAT_LEFT_MARGIN, STAT_TOP, STAT_FONT);
+}
 
 // Main display; show the number being entered or the current evaluation value.
 // Since the number can be wider than the display, and text wrapping always wraps to zero,
@@ -110,6 +127,7 @@ void set_buttons() {
 //
 void display_all() {
   display_value();
+  display_status();
   display_memory_storage();
   set_buttons();
   display_stacks();

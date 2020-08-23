@@ -4,6 +4,7 @@
 #define CHANGESIGN_OPERATOR     (uint8_t('`'))
 #define MEMORY_OPERATOR         (uint8_t('M'))
 #define BACKSPACE_OPERATOR      (uint8_t('B'))
+#define MAX_ARR_MEM_TO_SHOW     8
 #define CALC_NUMERIC_PRECISION  8
 
 
@@ -69,6 +70,42 @@ String KeyCalculator::get_value_stack() {
   }
   result += "]";
   return result;
+}
+
+
+String KeyCalculator::get_mem_display() {
+  String  str         = "";
+  uint8_t arr_count   = 0;
+  uint8_t stack_count = _calc.get_memory_depth();
+  double  mem         = _calc.get_memory();
+
+  for(uint8_t i = 0; i < NUM_CALC_MEMORIES; i++) {
+    if(0.0 != _calc.get_memory(i)) {
+      if(0 == arr_count++) str += "M[";
+      if(MAX_ARR_MEM_TO_SHOW > arr_count) {
+        str += i;
+        str += ',';
+      }
+      else {
+        str += "...,";
+        break;
+      }
+    }
+  }
+  if(arr_count) {
+    str[str.length() - 1] = ']';
+    str += "  ";
+  }
+  if(stack_count) {
+    str += "S() ";
+    str += stack_count;
+    str += "  ";
+  }
+  if(0.0 != mem) {
+    str += "M=";
+    str += _double_to_string(mem);
+  }
+  return str;
 }
 
 
