@@ -77,6 +77,15 @@ void TextCalculator::clear_all_memory() {
   _calc.clear_all_memory();
 }
 
+Op_Err TextCalculator::get_error_state() {
+  return _calc.get_error_state();
+}
+
+void TextCalculator::clear_error_state() {
+  _calc.clear_error_state();
+}
+
+
 // Convert the value to a string, with no trailing decimal point.
 // This algorithm only works for positive numbers, so for negative numbers
 // insert a - in the buffer and invert val

@@ -113,7 +113,16 @@ String KeyCalculator::get_mem_display() {
 //  Memory operations can be multiple keypresses
 //
 bool KeyCalculator::key(uint8_t code) {
-  // First, see if we just pressed the AC key two times
+  // First, see if we are in an error state. If so, only AC works!
+  if(_calc.get_error_state()) {
+    if(CLEAR_OPERATOR == code) {
+      _calc.clear_error_state();
+      return true;
+    }
+    return false;
+  }
+
+  // See if we just pressed the AC key two times
   if('A' == _last_key && 'A' == code) {
     return _clear(true);
   }

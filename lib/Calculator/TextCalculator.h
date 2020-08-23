@@ -35,6 +35,8 @@ class TextCalculator {
     void      pop();
     void      clear_memory();
     void      clear_all_memory();
+    Op_Err    get_error_state();
+    void      clear_error_state();
   protected:
     MemoryCalculator<double, NUM_CALC_MEMORIES> _calc;
     std::set<uint8_t>                           _ops;

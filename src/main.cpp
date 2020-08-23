@@ -65,9 +65,10 @@ void display_status() {
 // and I want a left margin, I must use a sprite to render then number.
 //
 void display_value() {
+  bool is_err = calc.get_error_state();
   sprite.fillSprite(NUM_BG_COLOR);
   sprite.setTextFont(NUM_FONT);
-  sprite.setTextColor(NUM_FG_COLOR, NUM_BG_COLOR);  // Blank space erases background w/ background color set
+  sprite.setTextColor(is_err ? RED :NUM_FG_COLOR, NUM_BG_COLOR);  // Blank space erases background w/ background color set
   sprite.setTextWrap(true);
 
   String   disp_value = calc.get_display();
@@ -81,14 +82,30 @@ void display_value() {
 
 
 // Show the memory location we're building up (M, Mn, Mnn)
+// If we're in error mode, show the error instead
 //
 void display_memory_storage() {
   String disp_value;
-  M5.Lcd.setTextFont(MEM_FONT);
   M5.Lcd.fillRect(0, MEM_TOP, SCREEN_WIDTH, MEM_HEIGHT, MEM_BG_COLOR);
-  if(calc.get_mem_entry(&disp_value)) {
-    M5.Lcd.setTextColor(MEM_FG_COLOR, MEM_BG_COLOR);  // Blank space erases background w/ background color set
+  Op_Err err = calc.get_error_state();
+  if(err) {
+    M5.Lcd.setTextFont(MEM_FONT);
+    M5.Lcd.setTextColor(RED, MEM_BG_COLOR);
+    switch (err) {
+      case ERROR_TOO_FEW_OPERANDS:  disp_value = "Too Few Operands";      break;
+      case ERROR_UNKNOWN_OPERATOR:  disp_value = "Unknown Operator";      break;
+      case ERROR_DIVIDE_BY_ZERO:    disp_value = "Divide by Zero";        break;
+      case ERROR_OVERFLOW:          disp_value = "Overflow";              break;
+      default:                      disp_value = "Unknown Error: " + err; break;
+    }
     M5.Lcd.drawCentreString(disp_value.c_str(), SCREEN_H_CENTER, MEM_TOP + MEM_V_MARGIN, MEM_FONT);
+  }
+  else {
+    M5.Lcd.setTextFont(MEM_FONT);
+    if(calc.get_mem_entry(&disp_value)) {
+      M5.Lcd.setTextColor(MEM_FG_COLOR, MEM_BG_COLOR);  // Blank space erases background w/ background color set
+      M5.Lcd.drawCentreString(disp_value.c_str(), SCREEN_H_CENTER, MEM_TOP + MEM_V_MARGIN, MEM_FONT);
+    }
   }
 }
 
@@ -96,13 +113,14 @@ void display_memory_storage() {
 // Show the memory location we're building up (M, Mn, Mnn)
 //
 void display_stacks() {
+  bool   is_err    = calc.get_error_state();
   String op_stack  = calc.get_operator_stack();
   String val_stack = calc.get_value_stack();
   M5.Lcd.fillRect(0, STACK_TOP, SCREEN_WIDTH, STACK_HEIGHT,STACK_BG_COLOR);
   if(3 < op_stack.length() || 3 < val_stack.length()) {
     M5.Lcd.setTextDatum(TL_DATUM);
     M5.Lcd.setTextFont(STACK_FONT);
-    M5.Lcd.setTextColor(STACK_FG_COLOR, STACK_BG_COLOR);  // Blank space erases background w/ background color set
+    M5.Lcd.setTextColor(is_err ? RED : STACK_FG_COLOR, STACK_BG_COLOR);  // Blank space erases background w/ background color set
     M5.Lcd.drawString(op_stack.c_str(), LEFT_MARGIN, STACK_TOP + STACK_V_MARGIN, STACK_FONT);
     M5.Lcd.setTextDatum(TR_DATUM);
     M5.Lcd.drawString(val_stack.c_str(), SCREEN_WIDTH - RIGHT_MARGIN, STACK_TOP + STACK_V_MARGIN, STACK_FONT);
@@ -183,7 +201,7 @@ bool process_input() {
   char input;
 
   if(read_key(input)) {
-    if(calc.key(input)) {
+    if(calc.key(input) || calc.get_error_state()) {
       display_all();
       return true;
     }

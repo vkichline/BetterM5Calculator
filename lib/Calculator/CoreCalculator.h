@@ -14,13 +14,16 @@
 #include <Arduino.h>
 
 
-#define OP_ID_NONE                 0                        // Result of popping an empty operator_stack
-#define NO_ERROR                   0                        // Good result from a calculation
-#define ERROR_TOO_FEW_OPERANDS    -1                        // Calculation error: not enough operands on the value_stack
-#define ERROR_UNKNOWN_OPERATOR    -2                        // Calculation error: the operator is not recognized.
+#define OP_ID_NONE                 0                            // Result of popping an empty operator_stack
+#define NO_ERROR                   0                            // Good result from a calculation
+#define ERROR_TOO_FEW_OPERANDS    -1                            // Calculation error: not enough operands on the value_stack
+#define ERROR_UNKNOWN_OPERATOR    -2                            // Calculation error: the operator is not recognized
+#define ERROR_DIVIDE_BY_ZERO      -3                            // Calculation error: divide by zero
+#define ERROR_SET_NOERROR         -4                            // You cannot set the error state to NONE, you must use clear_error_state()
+#define ERROR_OVERFLOW            -5
 
-#define DEBUG_OPERATORS            0                        // 0 is quiet, 1 spews info for debugging operators
-#define DEBUG_EVALUATION           0                        // 0 is quiet, 1 spews info for debugging evaluations
+#define DEBUG_OPERATORS            0                            // 0 is quiet, 1 spews info for debugging operators
+#define DEBUG_EVALUATION           0                            // 0 is quiet, 1 spews info for debugging evaluations
 
 #define ADDITION_OPERATOR         (uint8_t('+'))
 #define SUBTRACTION_OPERATOR      (uint8_t('-'))
@@ -29,12 +32,12 @@
 #define PERCENT_OPERATOR          (uint8_t('%'))
 #define OPEN_PAREN_OPERATOR       (uint8_t('('))
 #define CLOSE_PAREN_OPERATOR      (uint8_t(')'))
-#define EVALUATE_OPERATOR         (uint8_t('='))            // This is a special operator that is not implemented as a class or added to _operators
+#define EVALUATE_OPERATOR         (uint8_t('='))                // This is a special operator that is not implemented as a class or added to _operators
 
 
-template<typename T> class        Operator;                 // Forward declaration to operator template
-typedef int16_t                   Op_Err;                   // Signed error; 0 is no error, errors are normally negative. See #define ERROR_*
-typedef uint16_t                  Op_ID;                    // Operators are normally identified by a single char like '+'. More may be needed.
+template<typename T> class        Operator;                     // Forward declaration to operator template
+typedef int16_t                   Op_Err;                       // Signed error; 0 is no error, errors are normally negative. See #define ERROR_*
+typedef uint16_t                  Op_ID;                        // Operators are normally identified by a single char like '+'. More may be needed.
 
 
 // Tempate for the lowest level of the calculator engine, which manages evaluation of the operator_stack and value_stack.
@@ -44,22 +47,26 @@ template <typename T>
 class CoreCalculator {
   public:
     CoreCalculator();
-    Op_Err                        push_value(T value);      // Push a value onto the value_stack
-    T                             pop_value();              // Return the top value of the value_stack after removing it from the stack
-    T                             peek_value();             // Return the top value of the value_stack without changing the stack
-    Op_Err                        push_operator(Op_ID id);  // Push an operator onto the operator_stack (may cause evaluation of higher precedence items on stack)
-    Op_ID                         pop_operator();           // Return the top value of the operator_stack after removing it from the stack (OP_ID_NONE if empty)
-    Op_ID                         peek_operator();          // Return the top value of the operator_stack without changing the stack (OP_ID_NONE if empty)
-    Op_Err                        evaluate_one();           // Evaluate the top operator on the operator_stack (if any)
-    Op_Err                        evaluate();               // Evaluate the operator_stack until its empty
-    T                             get_value();              // Top of the operand_stack, or 0.0 if stack is empty
-    Op_Err                        clear();                  // Change value to zero
-    std::vector<T>                value_stack;              // Pushdown stack for values. Unfortunately, <stack> is broken
-    std::vector<Op_ID>            operator_stack;           // pushdown stack for operators
+    Op_Err                        push_value(T value);          // Push a value onto the value_stack
+    T                             pop_value();                  // Return the top value of the value_stack after removing it from the stack
+    T                             peek_value();                 // Return the top value of the value_stack without changing the stack
+    Op_Err                        push_operator(Op_ID id);      // Push an operator onto the operator_stack (may cause evaluation of higher precedence items on stack)
+    Op_ID                         pop_operator();               // Return the top value of the operator_stack after removing it from the stack (OP_ID_NONE if empty)
+    Op_ID                         peek_operator();              // Return the top value of the operator_stack without changing the stack (OP_ID_NONE if empty)
+    Op_Err                        evaluate_one();               // Evaluate the top operator on the operator_stack (if any)
+    Op_Err                        evaluate();                   // Evaluate the operator_stack until its empty
+    T                             get_value();                  // Top of the operand_stack, or 0.0 if stack is empty
+    Op_Err                        clear();                      // Change value to zero
+    Op_Err                        set_error_state(Op_Err err);  // Set the global error state. Return the previous error state. (Cannot be set to NO_ERROR)
+    Op_Err                        get_error_state();            // Return the global error state
+    void                          clear_error_state();          // Set _error_state to NO_ERROR and clear operator and value stacks.
+    std::vector<T>                value_stack;                  // Pushdown stack for values. Unfortunately, <stack> is broken
+    std::vector<Op_ID>            operator_stack;               // pushdown stack for operators
   protected:
-    void                          _initialize_operators();  // Fill the _operators map with instances of available Operators
-    std::map<Op_ID, Operator<T>*> _operators;               // A map of all the operators (extensible!)
-    void                          _spew_stacks();           // Writes operator_stack and value_stack to Serial port for debugging
+    void                          _initialize_operators();      // Fill the _operators map with instances of available Operators
+    std::map<Op_ID, Operator<T>*> _operators;                   // A map of all the operators (extensible!)
+    Op_Err                        _error_state;                 // Global error state.
+    void                          _spew_stacks();               // Writes operator_stack and value_stack to Serial port for debugging
 };
 
 
@@ -178,6 +185,7 @@ class DivisionOperator : public BinaryOperator<T> {
     }
     Op_Err operate() {
       BinaryOperator<T>::err = BinaryOperator<T>::prepare();
+      if(T(0) == BinaryOperator<T>::op1) return ERROR_DIVIDE_BY_ZERO;  // Check for divide by zero before proceeding
       return BinaryOperator<T>::push_result(BinaryOperator<T>::op2 / BinaryOperator<T>::op1);
     }
 };
@@ -257,6 +265,7 @@ class PercentOperator : public Operator<T> {
 ////////////////////////////////////////////////////////////////////////////////
 
 template <typename T> CoreCalculator<T>::CoreCalculator() {
+  set_error_state(NO_ERROR);
   _initialize_operators();
 }
 
@@ -367,7 +376,7 @@ template <typename T> Op_Err CoreCalculator<T>::clear() {
 }
 
 // Evaluate the top operator on the operator_stack (if any)
-// BUGBUG: how is overflow/underflow detected?
+// If an error occurs, set the global error state.
 //
 template <typename T> Op_Err CoreCalculator<T>::evaluate_one() {
   if(DEBUG_EVALUATION) { Serial.print("\nevaluate_one: "); _spew_stacks(); }
@@ -376,19 +385,48 @@ template <typename T> Op_Err CoreCalculator<T>::evaluate_one() {
     if(DEBUG_EVALUATION) Serial.printf("popped operator %c\n", id);
     if(!_operators.count(id)) {
       if(DEBUG_EVALUATION) Serial.println("operator unknown; returning false");
+      set_error_state(ERROR_UNKNOWN_OPERATOR);
       return ERROR_UNKNOWN_OPERATOR;
     }
     Operator<T>* op = _operators[id];
     if(!op->enough_values()) {
       if(DEBUG_EVALUATION) Serial.println("not enough operands; returning false");
+      set_error_state(ERROR_TOO_FEW_OPERANDS);
       return ERROR_TOO_FEW_OPERANDS;
     }
-    bool result = op->operate();
+    Op_Err result = op->operate();
     if(DEBUG_EVALUATION) Serial.printf("Result of %c operation: %d\n", id, result);
+    if(result) set_error_state(result);
     return result;
   }
   if(DEBUG_EVALUATION) Serial.println("operator stack empty");
   return NO_ERROR;  // Nothing to do; that's not an error
+}
+
+// Set the global error state. Return the previous error state.
+// You cannot set the error to NO_ERROR, you must use clear_error_state();
+//
+template <typename T> Op_Err CoreCalculator<T>::set_error_state(Op_Err err) {
+  if(err == NO_ERROR) return ERROR_SET_NOERROR;
+  Op_Err old_error_state = _error_state;
+  Serial.printf("Setting Global Error State to %d\n", err);
+  _error_state = err;
+  return old_error_state;
+}
+
+// Return the global error state
+//
+template <typename T> Op_Err CoreCalculator<T>::get_error_state() {
+  return _error_state;
+}
+
+// Clear the global error state, empty the operator and value stack.
+// (Make it safe to use the calculator again.)
+//
+template <typename T> void CoreCalculator<T>::clear_error_state() {
+  _error_state = NO_ERROR;
+  value_stack.clear();
+  operator_stack.clear();
 }
 
 // Place all the operators we plan to use in the _operators vector.
