@@ -10,18 +10,18 @@
 #define FG_COLOR              BLACK         // Arbitrary foreground color
 #define BG_COLOR              0xEF7D        // Arbitrary background color
 
-#define LEFT_MARGIN           8
-#define RIGHT_MARGIN          8
+#define LEFT_MARGIN           11
+#define RIGHT_MARGIN          11
 
 #define NUM_TOP               36            // Top of the number display, where the sum is shown
-#define NUM_HEIGHT            104           // Height of the number display
+#define NUM_HEIGHT            96            // Height of the number display
 #define NUM_V_MARGIN          4             // Offset from top to top text
 #define NUM_H_MARGIN          16            // Left/right margin of the number
 #define NUM_FONT              6             // Preferred number font
 #define NUM_FG_COLOR          FG_COLOR      // Number display foreground color
 #define NUM_BG_COLOR          BG_COLOR      // Number display background color
 
-#define MEM_TOP               125           // Top of the memory storage display
+#define MEM_TOP               135           // Top of the memory storage display
 #define MEM_HEIGHT            32            // Height of the memory storage display
 #define MEM_V_MARGIN          4             // Offset from top to top text
 #define MEM_FONT              4
@@ -83,6 +83,7 @@ void display_stacks() {
   String val_stack = calc.get_value_stack();
   M5.Lcd.fillRect(0, STACK_TOP, SCREEN_WIDTH, STACK_HEIGHT,STACK_BG_COLOR);
   if(3 < op_stack.length() || 3 < val_stack.length()) {
+    M5.Lcd.setTextDatum(TL_DATUM);
     M5.Lcd.setTextFont(STACK_FONT);
     M5.Lcd.setTextColor(STACK_FG_COLOR, STACK_BG_COLOR);  // Blank space erases background w/ background color set
     M5.Lcd.drawString(op_stack.c_str(), LEFT_MARGIN, STACK_TOP + STACK_V_MARGIN, STACK_FONT);
