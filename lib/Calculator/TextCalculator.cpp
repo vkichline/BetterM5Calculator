@@ -46,7 +46,7 @@ void TextCalculator::copy_to_memory() {
 }
 
 bool TextCalculator::copy_to_memory(uint8_t index) {
-  return _calc.set_memory(index, _calc.get_value());
+  return NO_ERROR == _calc.set_memory(index, _calc.get_value());
 }
 
 void TextCalculator::push() {
