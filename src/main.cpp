@@ -42,14 +42,21 @@
 #define STACK_FG_COLOR        BLUE
 #define STACK_BG_COLOR        BG_COLOR
 
-#define BUTTONS_NORMAL        "# ? # ^"
-#define BUTTONS_NORMAL_BS     "< # ? # ^"
+#define NUM_BUTTON_SETS       5
+#define BUTTONS_NORMAL_0      "help # menu # right"
+#define BUTTONS_NORMAL_1      "( # ) # right"
+#define BUTTONS_NORMAL_2      "pi # e # right"
+#define BUTTONS_NORMAL_3      "push # pop # right"
+#define BUTTONS_NORMAL_4      "square # sqroot # right"
+#define BUTTONS_NUM_MODE      "BS # cancel # right"
 #define BUTTONS_MEM_MODE      "get # M # set # = # clear # AC"
 
 
 KeyCalculator calc;
-TFT_eSprite   sprite = TFT_eSprite(&M5.Lcd);
-
+TFT_eSprite   sprite        = TFT_eSprite(&M5.Lcd);
+String        button_sets[] = { BUTTONS_NORMAL_0, BUTTONS_NORMAL_1, BUTTONS_NORMAL_2, BUTTONS_NORMAL_3, BUTTONS_NORMAL_4 };
+uint8_t       button_set    = 0;
+bool          cancel_bs     = false;  // If true, override displaying the BS buttons
 
 // Display the status of memory etc(?) in small text above value
 //
@@ -133,11 +140,17 @@ void display_stacks() {
 // Set the buttons at the bottom of the screen appropriately, depending on the mode
 //
 void set_buttons() {
+  bool num_mode = calc.get_bs_ok();
+  if(!num_mode) cancel_bs = false;  // make sure this special mode gets cleared asap
+
   if(calc.get_mem_entry(nullptr)) {
     ez.buttons.show(BUTTONS_MEM_MODE);
   }
+  else if(num_mode && !cancel_bs) {
+    ez.buttons.show(BUTTONS_NUM_MODE);
+  }
   else {
-    ez.buttons.show(calc.get_bs_ok() ? BUTTONS_NORMAL_BS : BUTTONS_NORMAL);
+    ez.buttons.show(button_sets[button_set]);
   }
 }
 
@@ -155,26 +168,18 @@ void display_all() {
 }
 
 
-// Someday this will be a real settings menu
+// Available functions
 //
-void more_menu() {
-  ezMenu menu("More Functions");
+void menu_menu() {
+  ezMenu menu("Calculator Menu");
   menu.txtSmall();
   menu.buttons("up # back # select ## down #");
-  menu.addItem("(|(\tLeft Paren");
-  menu.addItem(")|)\tRight Paren");
-  menu.addItem("SQ|SQ\tSquare");
-  menu.addItem("SR|SR\tSquare Root");
-  menu.addItem("I|I\tInverse");
-  menu.addItem("PI|PI\t3.14159265");
-  menu.addItem("e|e\t2.71828182");
+  menu.addItem("(None of these work yet)");
+  menu.addItem("Trigonometric Functions");
+  menu.addItem("History");
+  menu.addItem("Settings");
   menu.addItem("Show Memory");
   menu.runOnce();
-  String  choice = menu.pickName();
-  if     (choice == "(")  calc.key('(');
-  else if(choice == ")")  calc.key(')');
-  else if(choice == "PI") calc.set_display("3.14159265");
-  else if(choice == "e")  calc.set_display("2.71828182");
 }
 
 
@@ -215,15 +220,43 @@ bool process_input() {
   }
   String result = ez.buttons.poll();
   if(result.length()) {
-    if     (result == "get")    calc.key('M');  // In memory mode: retrieve
+    if (result == "right") {
+      if(calc.get_bs_ok()) {
+        // Special case: we're displaying the BUTTONS_NUM_MODE menu, and want to get out of it.
+        cancel_bs = true;
+      }
+      else {
+        button_set++;
+        if(NUM_BUTTON_SETS <= button_set)
+        button_set = 0;
+      }
+    }
+    // memory mode
+    else if(result == "get")    calc.key('M');  // In memory mode: retrieve
     else if(result == "set")    calc.key('=');  // In memory mode: st
     else if(result == "clear")  calc.key('A');  // In memory mode: clear
     if     (result == "M")      calc.key('M');  // In memory mode: retrieve
     else if(result == "=")      calc.key('=');  // In memory mode: st
     else if(result == "AC")     calc.key('A');  // In memory mode: clear
-    else if(result == "<")      calc.key('B');  // KeyCalculator command for backspace
-    else if(result == "?")      info_screen();
-    else if(result == "^")      more_menu();
+    // number entry mode
+    else if(result == "BS")     calc.key('B');  // KeyCalculator command for backspace
+    else if(result == "cancel") while(calc.get_bs_ok()) calc.key('B');  // to cancel input, we backspace until we can't anymore.
+    // normal 0
+    else if(result == "help")   info_screen();
+    else if(result == "menu")   menu_menu();
+    // normal 1
+    else if(result == "(")      calc.key('(');
+    else if(result == ")")      calc.key(')');
+    // normal 2
+    else if(result == "pi")     calc.set_display("3.14159265");
+    else if(result == "e")      calc.set_display("2.71828182");
+    // normal 3
+    else if(result == "push")   calc.push();
+    else if(result == "pop")    calc.pop();
+    // normal 4
+    else if(result == "square") return false;   // BUGBUG
+    else if(result == "sqroot") return false;   // BUGBUG
+
     display_all();
     return true;
   }
