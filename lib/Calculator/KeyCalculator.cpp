@@ -111,9 +111,9 @@ String KeyCalculator::get_status_display() {
     str += "  ";
   }
   if(stack_count) {
-    str += "S() ";
+    str += "S(";
     str += stack_count;
-    str += "  ";
+    str += ")  ";
   }
   if(0.0 != mem) {
     str += "M=";
