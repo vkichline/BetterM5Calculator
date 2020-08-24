@@ -73,7 +73,9 @@ String KeyCalculator::get_value_stack() {
 }
 
 
-String KeyCalculator::get_mem_display() {
+// Construct a string for a calculator to display showing status
+//
+String KeyCalculator::get_status_display() {
   String  str         = "";
   uint8_t arr_count   = 0;
   uint8_t stack_count = _calc.get_memory_depth();
@@ -157,7 +159,7 @@ bool KeyCalculator::key(uint8_t code) {
 
   // See if its a simple operator
   if(ADDITION_OPERATOR == code  || SUBTRACTION_OPERATOR == code || MULTIPLICATION_OPERATOR == code ||
-     DIVISION_OPERATOR  == code || OPEN_PAREN_OPERATOR  == code || OPEN_PAREN_OPERATOR     == code ||
+     DIVISION_OPERATOR  == code || OPEN_PAREN_OPERATOR  == code || CLOSE_PAREN_OPERATOR    == code ||
      EVALUATE_OPERATOR  == code || PERCENT_OPERATOR     == code) {
     if(DEBUG_KEY_CALCULATOR) Serial.printf("pushing operator '%c'\n", code);
     return enter(code);

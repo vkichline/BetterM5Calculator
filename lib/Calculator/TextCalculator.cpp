@@ -25,7 +25,10 @@ bool TextCalculator::enter(String value) {
   return enter(value.c_str());
 }
 
+// Like entering a value, clear the value stack if the Operatr_stack is empty, and this is a '('
+//
 bool TextCalculator::enter(Op_ID id) {
+  if((OPEN_PAREN_OPERATOR == id) && (0 == _calc.operator_stack.size())) _calc.value_stack.clear();
   return (NO_ERROR == _calc.push_operator(id));
 }
 

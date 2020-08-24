@@ -57,7 +57,7 @@ void display_status() {
   M5.Lcd.setTextDatum(TL_DATUM);
   M5.Lcd.setTextColor(STAT_FG_COLOR, STAT_BG_COLOR);  // Blank space erases background w/ background color set
   M5.Lcd.fillRect(0, STAT_TOP, SCREEN_WIDTH, STAT_HEIGHT, STAT_BG_COLOR);
-  M5.Lcd.drawString(calc.get_mem_display(), STAT_LEFT_MARGIN, STAT_TOP, STAT_FONT);
+  M5.Lcd.drawString(calc.get_status_display(), STAT_LEFT_MARGIN, STAT_TOP, STAT_FONT);
 }
 
 // Main display; show the number being entered or the current evaluation value.
@@ -160,14 +160,20 @@ void more_menu() {
   ezMenu menu("More Functions");
   menu.txtSmall();
   menu.buttons("up # back # select ## down #");
+  menu.addItem("(");
+  menu.addItem(")");
   menu.addItem("Square");
-  menu.addItem("Square Root");
   menu.addItem("Inverse");
   menu.addItem("PI");
   menu.addItem("e");
   menu.addItem("Show Memory");
   menu.addItem("Settings");
   menu.runOnce();
+  String  choice = menu.pickName();
+  if     (choice == "(")  calc.key('(');
+  else if(choice == ")")  calc.key(')');
+  else if(choice == "PI") calc.enter("3.14152654");
+  else if(choice == "e")  calc.enter("2.71828182");
 }
 
 
