@@ -42,7 +42,8 @@
 #define STACK_FG_COLOR        BLUE
 #define STACK_BG_COLOR        BG_COLOR
 
-#define BUTTONS_NORMAL        "< # ? # ^"
+#define BUTTONS_NORMAL        "# ? # ^"
+#define BUTTONS_NORMAL_BS     "< # ? # ^"
 #define BUTTONS_MEM_MODE      "get # M # set # = # clear # AC"
 
 
@@ -136,7 +137,7 @@ void set_buttons() {
     ez.buttons.show(BUTTONS_MEM_MODE);
   }
   else {
-    ez.buttons.show(BUTTONS_NORMAL);
+    ez.buttons.show(calc.get_bs_ok() ? BUTTONS_NORMAL_BS : BUTTONS_NORMAL);
   }
 }
 
@@ -160,20 +161,20 @@ void more_menu() {
   ezMenu menu("More Functions");
   menu.txtSmall();
   menu.buttons("up # back # select ## down #");
-  menu.addItem("(");
-  menu.addItem(")");
-  menu.addItem("Square");
-  menu.addItem("Inverse");
-  menu.addItem("PI");
-  menu.addItem("e");
+  menu.addItem("(|(\tLeft Paren");
+  menu.addItem(")|)\tRight Paren");
+  menu.addItem("SQ|SQ\tSquare");
+  menu.addItem("SR|SR\tSquare Root");
+  menu.addItem("I|I\tInverse");
+  menu.addItem("PI|PI\t3.14159265");
+  menu.addItem("e|e\t2.71828182");
   menu.addItem("Show Memory");
-  menu.addItem("Settings");
   menu.runOnce();
   String  choice = menu.pickName();
   if     (choice == "(")  calc.key('(');
   else if(choice == ")")  calc.key(')');
-  else if(choice == "PI") calc.enter("3.14152654");
-  else if(choice == "e")  calc.enter("2.71828182");
+  else if(choice == "PI") calc.set_display("3.14159265");
+  else if(choice == "e")  calc.set_display("2.71828182");
 }
 
 

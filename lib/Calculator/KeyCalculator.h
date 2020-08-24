@@ -15,8 +15,10 @@ class KeyCalculator : public TextCalculator {
     KeyCalculator();
     bool    key(uint8_t code);
     String  get_display();
+    void    set_display(String val);
     bool    get_mem_entry(String* str);
     String  get_operator_stack();
+    bool    get_bs_ok();
     String  get_value_stack();
     String  get_status_display();
   protected:

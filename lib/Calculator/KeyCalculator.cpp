@@ -27,6 +27,12 @@ String KeyCalculator::get_display() {
 }
 
 
+void KeyCalculator::set_display(String val) {
+  strcpy(_num_buffer, val.c_str());
+  _num_buffer_index = val.length();
+}
+
+
 // Get the memory address that's being built up if _entering_memory,
 // else return an empty string.
 //
@@ -71,6 +77,12 @@ String KeyCalculator::get_value_stack() {
   result += "]";
   return result;
 }
+
+
+bool KeyCalculator::get_bs_ok() {
+  return 0 != _num_buffer_index;
+}
+
 
 
 // Construct a string for a calculator to display showing status
