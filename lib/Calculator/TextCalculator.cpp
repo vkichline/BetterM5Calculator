@@ -10,6 +10,7 @@ TextCalculator::TextCalculator(uint8_t precision) {
   _ops        = { ADDITION_OPERATOR, SUBTRACTION_OPERATOR, MULTIPLICATION_OPERATOR, DIVISION_OPERATOR, OPEN_PAREN_OPERATOR, CLOSE_PAREN_OPERATOR, EVALUATE_OPERATOR };
   _nums       = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.', /*'+', '-'*/ };
   _wspace     = { ' ', '\t', '\n', '\r' };
+  enter("0");   // Start with an empty value on the stack.
 }
 
 // It's not obvious, but if the operator_stack is empty, the value_stack should be cleared.
