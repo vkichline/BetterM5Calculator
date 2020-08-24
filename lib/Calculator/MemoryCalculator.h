@@ -64,6 +64,7 @@ template <typename T, uint8_t M> void MemoryCalculator<T, M>::push_memory(T valu
 }
 
 template <typename T, uint8_t M> T MemoryCalculator<T, M>::pop_memory() {
+  if(0 == memory_stack.size()) return T(0);
   T value = memory_stack.back();
   memory_stack.pop_back();
   return value;

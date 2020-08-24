@@ -1,90 +1,216 @@
 #include "TextCalculator.h"
 
 #define DEBUG_PARSING   0
+#define DEBUG_PURGE     0
 
 
 TextCalculator::TextCalculator(uint8_t precision) {
   // set_mode(mode);
   _precision  = precision;
-  _error      = NO_ERROR;
   _ops        = { ADDITION_OPERATOR, SUBTRACTION_OPERATOR, MULTIPLICATION_OPERATOR, DIVISION_OPERATOR, OPEN_PAREN_OPERATOR, CLOSE_PAREN_OPERATOR, EVALUATE_OPERATOR };
-  _nums       = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.', /*'+', '-'*/ };
+  _nums       = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.' };
   _wspace     = { ' ', '\t', '\n', '\r' };
   enter("0");   // Start with an empty value on the stack.
 }
+
+
+// Parse a string and return true if no errors encountered.
+// Issue: This approach doesn't handle unary +/-
+//
+bool TextCalculator::parse(const char* statement) {
+  int   index = 0;
+  char  buffer[64];
+  if(DEBUG_PARSING) Serial.printf("\nDebugging parse(%s)\n", statement);
+  while(index < strlen(statement)) {
+    char c = statement[index++];
+    // Skip over whitespace
+    if(!is_wspace(c)) {
+      if(is_operator(c)) {
+        if(DEBUG_PARSING) Serial.printf("Pushing operator %c\n", c);
+        if(!enter(c)) {
+          if(DEBUG_PARSING) Serial.println("Error pushing operator! Returning false\n");
+          return false;
+        }
+      }
+      if(is_numeric(c)) {
+        int bi = 1;
+        buffer[0] = c;
+        if(DEBUG_PARSING) Serial.println("Parsing number");
+        while(is_numeric(statement[index])) {
+          buffer[bi++] = statement[index++];
+        }
+        buffer[bi] = '\0';
+        if(DEBUG_PARSING) Serial.printf("Pushing value %s\n", buffer);
+        if(!enter(buffer)) {
+          if(DEBUG_PARSING) Serial.println("Error pushing value! Returning false\n");
+          return false;
+        }
+      }
+    }
+  }
+  if(DEBUG_PARSING) Serial.println("Parse complete");
+  return true;
+}
+
+
+// String overload for the parse command
+//
+String TextCalculator::parse(String statement) {
+  if(parse(statement.c_str())) {
+    return value();
+  }
+  else {
+    return String("Error");
+  }
+}
+
 
 // It's not obvious, but if the operator_stack is empty, the value_stack should be cleared.
 // Otherwise, 1+1= 1+1= 1+1= results in a useless value_stack containing [2 2 2]
 //
 bool TextCalculator::enter(const char* value) {
-  if(0 == _calc.operator_stack.size()) _calc.value_stack.clear();
+  if(0 == _calc.operator_stack.size()) {
+    if(DEBUG_PURGE) Serial.printf("Clearing value stack before entering %s\n", value);
+    _calc.value_stack.clear();
+  }
   double val = _string_to_double(value);
   return NO_ERROR == _calc.push_value(val);
 }
 
+
+// String overload for enter value
+//
 bool TextCalculator::enter(String value) {
   return enter(value.c_str());
 }
 
-// Like entering a value, clear the value stack if the Operatr_stack is empty, and this is a '('
+
+// Pushing the Open Paren operator is handled like pushing a value, because the paren will evaluate
+// to a value. Clear the value stack in this case if the operator stack is empty, or we get values
+// piled up which will never be evaluated.
 //
 bool TextCalculator::enter(Op_ID id) {
   if((OPEN_PAREN_OPERATOR == id) && (0 == _calc.operator_stack.size())) _calc.value_stack.clear();
   return (NO_ERROR == _calc.push_operator(id));
 }
 
+
+// Evaluate all operations (like pushing '=')
+//
 Op_Err TextCalculator::total() {
   return _calc.evaluate();
 }
 
- String TextCalculator::value() {
+
+// Returns the current value from the top of the value stack as a String
+String TextCalculator::value() {
   return _double_to_string(_calc.get_value());
 }
 
+
+// Replace (do not push) current value
+//
+void TextCalculator::set_value(const char* value) {
+  _calc.value_stack.back() = _string_to_double(value);
+}
+
+
+// Replace (do not push) current value
+//
+void TextCalculator::set_value(String value) {
+  set_value(value.c_str());
+}
+
+
+// Copy current value() to M
+//
 void TextCalculator::copy_to_memory() {
   _calc.set_memory(_calc.get_value());
 }
 
+
+// Copy current value() to M[index]
+//
 bool TextCalculator::copy_to_memory(uint8_t index) {
   return NO_ERROR == _calc.set_memory(index, _calc.get_value());
 }
 
+
+// Push a copy of the current value() onto the memory stack
+//
 void TextCalculator::push() {
   return _calc.push_memory(_calc.get_value());
 }
 
+
+// Replace value() with M
+//
 bool TextCalculator::recall_memory() {
-  _calc.value_stack.push_back(_calc.get_memory());
+  _calc.value_stack.back() = _calc.get_memory();
   return true;
 }
 
+
+// Replace value() with M[index]
+//
 bool TextCalculator::recall_memory(uint8_t index) {
   if(NUM_CALC_MEMORIES - 1 <= index) return false;
-  _calc.value_stack.push_back(_calc.get_memory(index));
+  _calc.value_stack.back() = _calc.get_memory(index);
   return true;
 }
 
+
+// Pop a value off the memory stack and replace value() with it
+//
 void TextCalculator::pop() {
-  if(0 == _calc.value_stack.size()) {
-    _calc.push_memory(_calc.pop_memory());
-  }
-  else {
-    _calc.value_stack.back() = _calc.pop_memory();
-  }
+  _calc.value_stack.back() = _calc.pop_memory();
 }
 
+
+// Clear only M
+//
 void TextCalculator::clear_memory() {
   _calc.set_memory(0.0);
 }
 
+
+// Clear M, all M[], and the memory stack
+//
 void TextCalculator::clear_all_memory() {
   _calc.clear_all_memory();
 }
 
+
+// Return true if id is in _ops
+//
+bool TextCalculator::is_operator(Op_ID id) {
+  return (_ops.find(Op_ID(id)) != _ops.end());
+}
+
+
+// Return true if c is in _nums
+//
+bool TextCalculator::is_numeric(char c) {
+  return (_nums.find(Op_ID(c)) != _nums.end());
+}
+
+
+// Return true if c is in _wspace
+//
+bool TextCalculator::is_wspace(char c) {
+  return (_wspace.find(Op_ID(c)) != _wspace.end());
+}
+
+
+// Get the current calculator global error state
+//
 Op_Err TextCalculator::get_error_state() {
   return _calc.get_error_state();
 }
 
+
+// Clear the calculator global error state
+//
 void TextCalculator::clear_error_state() {
   _calc.clear_error_state();
 }
@@ -120,53 +246,7 @@ String TextCalculator::_double_to_string(double val) {
   return String(buffer);
 }
 
+
 double TextCalculator::_string_to_double(const char* val) {
   return atof(val);     // trivial implementation; will use precision and base later
-}
-
-String TextCalculator::parse(String statement) {
-  if(parse(statement.c_str())) {
-    return value();
-  }
-  else {
-    return String("Error");
-  }
-}
-
-
-// BUGBUG: This approach doesn't handle unary +/-
-//
-bool TextCalculator::parse(const char* statement) {
-  int   index = 0;
-  char  buffer[64];
-  if(DEBUG_PARSING) Serial.printf("\nDebugging parse(%s)\n", statement);
-  while(index < strlen(statement)) {
-    char c = statement[index++];
-    // Skip over whitespace
-    if(_wspace.find(c) == _wspace.end()) {
-      if(_ops.find(uint8_t(c)) != _ops.end()) {
-        if(DEBUG_PARSING) Serial.printf("Pushing operator %c\n", c);
-        if(!enter(c)) {
-          if(DEBUG_PARSING) Serial.println("Error pushing operator! Returning false\n");
-          return false;
-        }
-      }
-      if(_nums.find(c) != _nums.end()) {
-        int bi = 1;
-        buffer[0] = c;
-        if(DEBUG_PARSING) Serial.println("Parsing number");
-        while(_nums.count( statement[index])) {
-          buffer[bi++] = statement[index++];
-        }
-        buffer[bi] = '\0';
-        if(DEBUG_PARSING) Serial.printf("Pushing value %s\n", buffer);
-        if(!enter(buffer)) {
-          if(DEBUG_PARSING) Serial.println("Error pushing value! Returning false\n");
-          return false;
-        }
-      }
-    }
-  }
-  if(DEBUG_PARSING) Serial.println("Parse complete");
-  return true;
 }
