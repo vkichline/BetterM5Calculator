@@ -1,62 +1,27 @@
 #include <M5Stack.h>
 #include <M5ez.h>
 #include <KeyCalculator.h>
+#include "screen_layout.h"
+#include "help_text.h"
 
-#define KEYBOARD_I2C_ADDR     0X08          // I2C address of the Calculator FACE
-#define KEYBOARD_INT          5             // Data ready pin for Calculator FACE (active low)
-
-#define SCREEN_WIDTH          320           // Horizontal screen size
-#define SCREEN_H_CENTER       160           // Horizontal center of screen
-#define FG_COLOR              BLACK         // Arbitrary foreground color
-#define BG_COLOR              0xEF7D        // Arbitrary background color
-
-#define LEFT_MARGIN           11
-#define RIGHT_MARGIN          11
-
-#define STAT_TOP              24
-#define STAT_HEIGHT           20
-#define STAT_FONT             2
-#define STAT_LEFT_MARGIN      8
-#define STAT_FG_COLOR         BLUE
-#define STAT_BG_COLOR         BG_COLOR
-
-#define NUM_TOP               44            // Top of the number display, where the sum is shown
-#define NUM_HEIGHT            96            // Height of the number display
-#define NUM_V_MARGIN          4             // Offset from top to top text
-#define NUM_H_MARGIN          16            // Left/right margin of the number
-#define NUM_FONT              6             // Preferred number font
-#define NUM_FG_COLOR          FG_COLOR      // Number display foreground color
-#define NUM_BG_COLOR          BG_COLOR      // Number display background color
-
-#define MEM_TOP               135           // Top of the memory storage display
-#define MEM_HEIGHT            32            // Height of the memory storage display
-#define MEM_V_MARGIN          4             // Offset from top to top text
-#define MEM_FONT              4
-#define MEM_FG_COLOR          BLUE
-#define MEM_BG_COLOR          BG_COLOR
-
-#define STACK_TOP             185
-#define STACK_HEIGHT          24
-#define STACK_V_MARGIN        4
-#define STACK_FONT            2
-#define STACK_FG_COLOR        BLUE
-#define STACK_BG_COLOR        BG_COLOR
-
-#define NUM_BUTTON_SETS       5
+#define BUTTONS_NUM_MODE      "BS # cancel # right"
+#define BUTTONS_MEM_MODE      "get # M # set # = # clear # AC"
 #define BUTTONS_NORMAL_0      "help # menu # right"
 #define BUTTONS_NORMAL_1      "( # ) # right"
 #define BUTTONS_NORMAL_2      "pi # e # right"
 #define BUTTONS_NORMAL_3      "push # pop # right"
 #define BUTTONS_NORMAL_4      "square # sqroot # right"
-#define BUTTONS_NUM_MODE      "BS # cancel # right"
-#define BUTTONS_MEM_MODE      "get # M # set # = # clear # AC"
+#define BUTTONS_NORMAL_5      "inv # fact # right"
+#define NUM_BUTTON_SETS       6
 
 
 KeyCalculator calc;
-TFT_eSprite   sprite        = TFT_eSprite(&M5.Lcd);
-String        button_sets[] = { BUTTONS_NORMAL_0, BUTTONS_NORMAL_1, BUTTONS_NORMAL_2, BUTTONS_NORMAL_3, BUTTONS_NORMAL_4 };
-uint8_t       button_set    = 0;
-bool          cancel_bs     = false;  // If true, override displaying the BS buttons
+TFT_eSprite   sprite          = TFT_eSprite(&M5.Lcd);
+String        button_sets[]   = { BUTTONS_NORMAL_0, BUTTONS_NORMAL_1, BUTTONS_NORMAL_2, BUTTONS_NORMAL_3, BUTTONS_NORMAL_4, BUTTONS_NORMAL_5 };
+uint8_t       button_set      = 0;
+bool          cancel_bs       = false;  // If true, override displaying the BS buttons
+bool          stacks_visible  = true;   // Can be turned off in settings menu
+
 
 // Display the status of memory etc(?) in small text above value
 //
@@ -125,7 +90,7 @@ void display_stacks() {
   String op_stack  = calc.get_operator_stack();
   String val_stack = calc.get_value_stack();
   M5.Lcd.fillRect(0, STACK_TOP, SCREEN_WIDTH, STACK_HEIGHT,STACK_BG_COLOR);
-  if(3 < op_stack.length() || 3 < val_stack.length()) {
+  if(stacks_visible && (3 < op_stack.length() || 3 < val_stack.length())) {
     M5.Lcd.setTextDatum(TL_DATUM);
     M5.Lcd.setTextFont(STACK_FONT);
     M5.Lcd.setTextColor(is_err ? RED : STACK_FG_COLOR, STACK_BG_COLOR);  // Blank space erases background w/ background color set
@@ -171,22 +136,32 @@ void display_all() {
 // Available functions
 //
 void menu_menu() {
-  ezMenu menu("Calculator Menu");
+  ezMenu menu("Calculator Settings");
   menu.txtSmall();
   menu.buttons("up # back # select ## down #");
-  menu.addItem("(None of these work yet)");
-  menu.addItem("Trigonometric Functions");
-  menu.addItem("History");
-  menu.addItem("Settings");
-  menu.addItem("Show Memory");
-  menu.runOnce();
+  menu.addItem(String("Stacks | Display Stacks\t") + (stacks_visible ? "On" : "Off"));
+  menu.addItem("Show All Memory");
+  menu.addItem("Exit | Back to Calculator");
+  while(menu.runOnce()) {
+    if(menu.pickName() == "Exit") return;
+    if(menu.pickName() == "Stacks") {
+      if(menu.pickCaption().endsWith("On")) {
+        menu.setCaption("Stacks", "Display Stacks\tOff");
+        stacks_visible = false;
+      }
+      else {
+        menu.setCaption("Stacks", "Display Stacks\tOn");
+        stacks_visible = true;
+      }
+    }
+  }
 }
 
 
 // Respond to the "?" button with some instructions
 //
-void info_screen() {
-  ez.textBox("Info", "Someday this will tell you how to use this calculator.", true);
+void help_screen() {
+  ez.textBox("Info", HELP_TEXT, true);
 }
 
 
@@ -242,7 +217,7 @@ bool process_input() {
     else if(result == "BS")     calc.key('B');  // KeyCalculator command for backspace
     else if(result == "cancel") while(calc.get_bs_ok()) calc.key('B');  // to cancel input, we backspace until we can't anymore.
     // normal 0
-    else if(result == "help")   info_screen();
+    else if(result == "help")   help_screen();
     else if(result == "menu")   menu_menu();
     // normal 1
     else if(result == "(")      calc.key('(');
@@ -256,6 +231,9 @@ bool process_input() {
     // normal 4
     else if(result == "square") return false;   // BUGBUG
     else if(result == "sqroot") return false;   // BUGBUG
+    // normal 5
+    else if(result == "inv") return false;     // BUGBUG
+    else if(result == "fact") return false;    // BUGBUG
 
     display_all();
     return true;
