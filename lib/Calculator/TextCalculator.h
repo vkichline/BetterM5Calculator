@@ -6,13 +6,15 @@
 // Rather than getting a value from memory, you retrieve a value, and it
 // replaces the value on the top of the value stack.
 //
-// By Van Kichline, in the year of the plague
+// By Van Kichline
+// In the year of the plague
 
 
 #include <set>
 #include "MemoryCalculator.h"
 
 #define NUM_CALC_MEMORIES   100
+#define MEMORY_OPERATOR     (uint8_t('M'))
 
 // enum CalcMode { Calc_Mode_FP, Calc_Mode_Integer };
 // enum CalcBase { Calc_Base_Binary = 2, Calc_Base_Octal = 8, CalcBase_Decimal = 10, Calc_Base_Hexidecimal = 16 };
@@ -42,6 +44,7 @@ class TextCalculator {
     void              clear_all_memory();                 // Clear M, all M[], and the memory stack
 
     bool              is_operator(Op_ID id);              // Return true if id is in _ops
+    bool              is_mem_operator(Op_ID id);          // Return true if id is in _mem_ops
     bool              is_numeric(char c);                 // Return true if c is in _nums
     bool              is_wspace(char c);                  // Return true if c is in _wspace
 
@@ -50,6 +53,7 @@ class TextCalculator {
   protected:
     MemoryCalculator<double, NUM_CALC_MEMORIES> _calc;    // The calculator engine embedded within
     std::set<Op_ID>   _ops;                               // A set of all the known Op_IDs
+    std::set<Op_ID>   _mem_ops;                           // A set of all the Op_IDs for memory mode
     std::set<char>    _nums;                              // A set of all numeric characters (including . but not + -)
     std::set<char>    _wspace;                            // A set of all whitespace characters
     uint8_t           _precision;                         // Precision to use in _double_to_string()

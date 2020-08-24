@@ -75,7 +75,7 @@ void display_memory_storage() {
   }
   else {
     M5.Lcd.setTextFont(MEM_FONT);
-    if(calc.get_mem_entry(&disp_value)) {
+    if(calc.is_building_memory(&disp_value)) {
       M5.Lcd.setTextColor(MEM_FG_COLOR, MEM_BG_COLOR);  // Blank space erases background w/ background color set
       M5.Lcd.drawCentreString(disp_value.c_str(), SCREEN_H_CENTER, MEM_TOP + MEM_V_MARGIN, MEM_FONT);
     }
@@ -87,8 +87,8 @@ void display_memory_storage() {
 //
 void display_stacks() {
   bool   is_err    = calc.get_error_state();
-  String op_stack  = calc.get_operator_stack();
-  String val_stack = calc.get_value_stack();
+  String op_stack  = calc.get_operator_stack_display();
+  String val_stack = calc.get_value_stack_display();
   M5.Lcd.fillRect(0, STACK_TOP, SCREEN_WIDTH, STACK_HEIGHT,STACK_BG_COLOR);
   if(stacks_visible && (3 < op_stack.length() || 3 < val_stack.length())) {
     M5.Lcd.setTextDatum(TL_DATUM);
@@ -105,10 +105,10 @@ void display_stacks() {
 // Set the buttons at the bottom of the screen appropriately, depending on the mode
 //
 void set_buttons() {
-  bool num_mode = calc.get_bs_ok();
+  bool num_mode = calc.is_building_number();
   if(!num_mode) cancel_bs = false;  // make sure this special mode gets cleared asap
 
-  if(calc.get_mem_entry(nullptr)) {
+  if(calc.is_building_memory(nullptr)) {
     ez.buttons.show(BUTTONS_MEM_MODE);
   }
   else if(num_mode && !cancel_bs) {
@@ -196,7 +196,7 @@ bool process_input() {
   String result = ez.buttons.poll();
   if(result.length()) {
     if (result == "right") {
-      if(calc.get_bs_ok()) {
+      if(calc.is_building_number()) {
         // Special case: we're displaying the BUTTONS_NUM_MODE menu, and want to get out of it.
         cancel_bs = true;
       }
@@ -215,7 +215,7 @@ bool process_input() {
     else if(result == "AC")     calc.key('A');  // In memory mode: clear
     // number entry mode
     else if(result == "BS")     calc.key('B');  // KeyCalculator command for backspace
-    else if(result == "cancel") while(calc.get_bs_ok()) calc.key('B');  // to cancel input, we backspace until we can't anymore.
+    else if(result == "cancel") while(calc.is_building_number()) calc.key('B');  // to cancel input, we backspace until we can't anymore.
     // normal 0
     else if(result == "help")   help_screen();
     else if(result == "menu")   menu_menu();

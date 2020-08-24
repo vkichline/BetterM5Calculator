@@ -1,18 +1,82 @@
 #include "KeyCalculator.h"
 
-#define DEBUG_KEY_CALCULATOR    0
 #define CHANGESIGN_OPERATOR     (uint8_t('`'))
-#define MEMORY_OPERATOR         (uint8_t('M'))
 #define BACKSPACE_OPERATOR      (uint8_t('B'))
 #define MAX_ARR_MEM_TO_SHOW     8
 #define CALC_NUMERIC_PRECISION  8
+#define DEBUG_KEY_CALCULATOR    0
 
 
 KeyCalculator::KeyCalculator() : TextCalculator(CALC_NUMERIC_PRECISION) {
   _num_buffer_index = 0;
   _mem_buffer_index = 0;
-  _last_key         = 0;
+  _previous_key     = 0;
   _entering_memory  = false;
+}
+
+
+// This is the workhorse routine for handling incoming keys from the keyboard.
+// Clear (AC, the 'A' command) can be one or two keypresses
+// Memory operations can be multiple keypresses
+//
+bool KeyCalculator::key(uint8_t code) {
+  // First, see if we are in an error state. If so, only AC works!
+  if(_calc.get_error_state()) {
+    if(CLEAR_OPERATOR == code) {
+      _calc.clear_error_state();
+      return true;
+    }
+    return false;
+  }
+
+  // See if we just pressed the AC key two times
+  if('A' == _previous_key && 'A' == code) {
+    return _handle_clear(true);
+  }
+
+  // Next, see if we are entering a multi-key memory command
+  if(_entering_memory) {
+    return _handle_memory_command(code);
+  }
+
+  // Special case for chaining:
+  // If you press 1 + =, most calculators will give you 2. The rule is:
+  // When = is pressed, if _previous_key was an operator (excluding =),
+  // push the current value, then proceed to push = as normal.
+  // Caution: % cannot be chained.
+  //
+  if(EVALUATE_OPERATOR == code) {
+    if(ADDITION_OPERATOR       == _previous_key || SUBTRACTION_OPERATOR == _previous_key ||
+       MULTIPLICATION_OPERATOR == _previous_key || DIVISION_OPERATOR    == _previous_key) {
+      // can't use push_number() here
+      Serial.printf("Pushing %.4f in chaining mode\n", value());
+      enter(value());
+    }
+  }
+
+  _previous_key = code;   // Save the keystroke for processing in next call
+
+  // Next, see if a number is being entered (with B for Backspace)
+  if(('0' <= code && '9' >= code) || ('.' == code) || 'B' == code) {
+    return _build_number(code);
+  }
+
+  _push_number();
+
+  // See if its a simple operator
+  if(is_operator(code)) {
+    if(DEBUG_KEY_CALCULATOR) Serial.printf("pushing operator '%c'\n", code);
+    return enter(code);
+  }
+
+  // These operations require more complex handling
+  switch(code) {
+    case CHANGESIGN_OPERATOR: return _handle_change_sign();
+    case CLEAR_OPERATOR:      return _handle_clear(false);
+    case MEMORY_OPERATOR:     return _handle_memory_command(code);
+    default:                  return false;
+  }
+  return false;
 }
 
 
@@ -27,16 +91,18 @@ String KeyCalculator::get_display() {
 }
 
 
+// Set the display value to val
+//
 void KeyCalculator::set_display(String val) {
   strcpy(_num_buffer, val.c_str());
-  _num_buffer_index = val.length();
+  _num_buffer_index = 0;
 }
 
 
 // Get the memory address that's being built up if _entering_memory,
 // else return an empty string.
 //
-bool KeyCalculator::get_mem_entry(String* str) {
+bool KeyCalculator::is_building_memory(String* str) {
   if(_entering_memory) {
     if(str) {
       *str = "M[";
@@ -57,35 +123,14 @@ bool KeyCalculator::get_mem_entry(String* str) {
 }
 
 
-String KeyCalculator::get_operator_stack() {
-  String result = "[ ";
-  for(int i = 0; i < _calc.operator_stack.size(); i++) {
-    result += char(_calc.operator_stack[i]);
-    result += " ";
-  }
-  result += "]";
-  return result;
-}
-
-
-String KeyCalculator::get_value_stack() {
-  String result = "[ ";
-  for(int i = 0; i < _calc.value_stack.size(); i++) {
-    result += _double_to_string(_calc.value_stack[i]);
-    result += " ";
-  }
-  result += "]";
-  return result;
-}
-
-
-bool KeyCalculator::get_bs_ok() {
+// In numeric entry mode. BS can be used.
+//
+bool KeyCalculator::is_building_number() {
   return 0 != _num_buffer_index;
 }
 
 
-
-// Construct a string for a calculator to display showing status
+// Construct a string for a calculator to display showing status.
 //
 String KeyCalculator::get_status_display() {
   String  str         = "";
@@ -123,111 +168,35 @@ String KeyCalculator::get_status_display() {
 }
 
 
-//  Clear (AC, the 'A' command) can be one or two keypresses
-//  Memory operations can be multiple keypresses
+// Get representation of op stack
 //
-bool KeyCalculator::key(uint8_t code) {
-  // First, see if we are in an error state. If so, only AC works!
-  if(_calc.get_error_state()) {
-    if(CLEAR_OPERATOR == code) {
-      _calc.clear_error_state();
-      return true;
-    }
-    return false;
+String KeyCalculator::get_operator_stack_display() {
+  String result = "[ ";
+  for(int i = 0; i < _calc.operator_stack.size(); i++) {
+    result += char(_calc.operator_stack[i]);
+    result += " ";
   }
-
-  // See if we just pressed the AC key two times
-  if('A' == _last_key && 'A' == code) {
-    return _clear(true);
-  }
-
-  // Next, see if we are entering a multi-key memory command
-  if(_entering_memory) {
-    return _memory(code);
-  }
-
-  // Special case for chaining:
-  // If you press 1 + =, most calculators will give you 2. The rule is:
-  // When = is pressed, if _last_key was an operator (excluding =),
-  // push the current value, then proceed to push = as normal.
-  // Caution: % cannot be chained.
-  //
-  if(EVALUATE_OPERATOR == code) {
-    if(ADDITION_OPERATOR       == _last_key || SUBTRACTION_OPERATOR == _last_key ||
-       MULTIPLICATION_OPERATOR == _last_key || DIVISION_OPERATOR    == _last_key) {
-      // can't use push_number() here
-      enter(value());
-    }
-  }
-
-  _last_key = code;
-
-  // Next, see if a number is being entered (with B for Backspace)
-  if(('0' <= code && '9' >= code) || ('.' == code) || 'B' == code) {
-    return _build_number(code);
-  }
-
-  _push_number();
-
-  // See if its a simple operator
-  if(ADDITION_OPERATOR == code  || SUBTRACTION_OPERATOR == code || MULTIPLICATION_OPERATOR == code ||
-     DIVISION_OPERATOR  == code || OPEN_PAREN_OPERATOR  == code || CLOSE_PAREN_OPERATOR    == code ||
-     EVALUATE_OPERATOR  == code || PERCENT_OPERATOR     == code) {
-    if(DEBUG_KEY_CALCULATOR) Serial.printf("pushing operator '%c'\n", code);
-    return enter(code);
-  }
-
-  // These operations require more complex handling
-  switch(code) {
-    case CHANGESIGN_OPERATOR: return _change_sign();
-    case CLEAR_OPERATOR:      return _clear(false);
-    case MEMORY_OPERATOR:     return _memory(code);
-    default:                  return false;
-  }
-  return false;
+  result += "]";
+  return result;
 }
 
 
-bool KeyCalculator::_build_number(uint8_t code) {
-  if('B' == code) {
-    // backspace one space
-    if(_num_buffer_index) {
-      _num_buffer_index--;
-      _num_buffer[_num_buffer_index] = '\0';
-      return true;
-    }
-    return false;
-  }
-  if(KEY_CALCULATOR_NUM_BUFFER_SIZE <= _num_buffer_index - 1) return false;
-  if('.' == code) { if(nullptr != strchr(_num_buffer, '.')) { return false; } } // One dp per number
-  _num_buffer[_num_buffer_index++] = code;
-  _num_buffer[_num_buffer_index]   = '\0';
-  if(DEBUG_KEY_CALCULATOR) Serial.printf("_build_number: %s\n", _num_buffer);
-  return true;
-}
-
-
-// Not inputting a number anymore, so push any number that's been accumulated to the stack
+// Get representation of value stack
 //
-bool KeyCalculator::_push_number() {
-  if(_num_buffer_index) {
-    String str = _convert_num_buffer(true);
-    if(DEBUG_KEY_CALCULATOR) Serial.printf("pushing %s onto the stack\n", str.c_str());
-    enter(str); // Do not return; push numver and continue processing
-    return true;
+String KeyCalculator::get_value_stack_display() {
+  String result = "[ ";
+  for(int i = 0; i < _calc.value_stack.size(); i++) {
+    result += _double_to_string(_calc.value_stack[i]);
+    result += " ";
   }
-  return false;
+  result += "]";
+  return result;
 }
 
 
-String KeyCalculator::_convert_num_buffer(bool clear) {
-  if(clear) _num_buffer_index = 0;
-  if(DEBUG_KEY_CALCULATOR) Serial.printf("_convert_num_buffer: %s\n", _num_buffer);
-  return String(_num_buffer);
-}
-
-
-bool KeyCalculator::_clear(bool all_clear) {
+// Handle the AC key, with 1st & 2nd press actions
+//
+bool KeyCalculator::_handle_clear(bool all_clear) {
   if(all_clear) {
     if(DEBUG_KEY_CALCULATOR) Serial.println("Clearing all memory");
     clear_all_memory();
@@ -241,7 +210,9 @@ bool KeyCalculator::_clear(bool all_clear) {
 }
 
 
-bool KeyCalculator::_change_sign() {
+// Handle +/- key, which is an input action, not a command
+//
+bool KeyCalculator::_handle_change_sign() {
   if(DEBUG_KEY_CALCULATOR) Serial.println("change_sign");
   if(0 < _calc.value_stack.size()) {
     if(0.0 != _calc.get_value()) {
@@ -269,8 +240,8 @@ bool KeyCalculator::_change_sign() {
 // M.   Cancel out of memory mode (N/C)
 // Note that there may be 10 or thousands of memories.
 //
-bool KeyCalculator::_memory(uint8_t code) {
-  if(DEBUG_KEY_CALCULATOR) Serial.printf("_memory('%c')\n", code);
+bool KeyCalculator::_handle_memory_command(uint8_t code) {
+  if(DEBUG_KEY_CALCULATOR) Serial.printf("_handle_memory_command('%c')\n", code);
   if(!_entering_memory) {
     if(DEBUG_KEY_CALCULATOR) Serial.println("Setting _entering_memory");
     assert(MEMORY_OPERATOR == code);
@@ -328,9 +299,7 @@ bool KeyCalculator::_memory(uint8_t code) {
     }
 
     // If it's a memory operation, call the memory_operation and terminate _entering_memory
-    if(ADDITION_OPERATOR  == code || SUBTRACTION_OPERATOR == code  || MULTIPLICATION_OPERATOR == code ||
-       DIVISION_OPERATOR  == code || EVALUATE_OPERATOR    == code  || PERCENT_OPERATOR        == code ||
-       CLEAR_OPERATOR     == code) {
+    if(is_mem_operator(code)) {
       if(0 == _mem_buffer_index) {
         if(DEBUG_KEY_CALCULATOR) Serial.printf("call memory_operation(Op_ID = '%c')\n\n", code);
         _calc.memory_operation(code);
@@ -351,3 +320,49 @@ bool KeyCalculator::_memory(uint8_t code) {
   _entering_memory  = false;
   return false;
 }
+
+
+// Build the display value from keystrokes
+//
+bool KeyCalculator::_build_number(uint8_t code) {
+  if('B' == code) {
+    // backspace one space
+    if(_num_buffer_index) {
+      _num_buffer_index--;
+      _num_buffer[_num_buffer_index] = '\0';
+      return true;
+    }
+    return false;
+  }
+  if(KEY_CALCULATOR_NUM_BUFFER_SIZE <= _num_buffer_index - 1) return false;
+  if('.' == code) { if(nullptr != strchr(_num_buffer, '.')) { return false; } } // One dp per number
+  _num_buffer[_num_buffer_index++] = code;
+  _num_buffer[_num_buffer_index]   = '\0';
+  if(DEBUG_KEY_CALCULATOR) Serial.printf("_build_number: %s\n", _num_buffer);
+  return true;
+}
+
+
+// Not inputting a number anymore, so push any number that's been accumulated to the stack
+//
+bool KeyCalculator::_push_number() {
+  if(_num_buffer_index) {
+    String str = _convert_num_buffer(true);
+    if(DEBUG_KEY_CALCULATOR) Serial.printf("pushing %s onto the stack\n", str.c_str());
+    enter(str); // Do not return; push numver and continue processing
+    return true;
+  }
+  return false;
+}
+
+
+// Convert the buffer to a String and clear it
+//
+String KeyCalculator::_convert_num_buffer(bool clear) {
+  if(clear) _num_buffer_index = 0;
+  if(DEBUG_KEY_CALCULATOR) Serial.printf("_convert_num_buffer: %s\n", _num_buffer);
+  return String(_num_buffer);
+}
+
+
+

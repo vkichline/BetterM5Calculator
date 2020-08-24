@@ -6,7 +6,8 @@
 // There is an array of M memories: memories
 // And there is a memory stack: memory_stack
 //
-// By Van Kichline, in the year of the plague
+// By Van Kichline
+// In the year of the plague
 
 
 #define CLEAR_OPERATOR   (uint8_t('A'))

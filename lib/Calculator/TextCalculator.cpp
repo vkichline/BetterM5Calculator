@@ -7,7 +7,8 @@
 TextCalculator::TextCalculator(uint8_t precision) {
   // set_mode(mode);
   _precision  = precision;
-  _ops        = { ADDITION_OPERATOR, SUBTRACTION_OPERATOR, MULTIPLICATION_OPERATOR, DIVISION_OPERATOR, OPEN_PAREN_OPERATOR, CLOSE_PAREN_OPERATOR, EVALUATE_OPERATOR };
+  _ops        = { ADDITION_OPERATOR, SUBTRACTION_OPERATOR, MULTIPLICATION_OPERATOR, DIVISION_OPERATOR, OPEN_PAREN_OPERATOR, CLOSE_PAREN_OPERATOR, EVALUATE_OPERATOR, PERCENT_OPERATOR };
+  _mem_ops    = { ADDITION_OPERATOR, SUBTRACTION_OPERATOR, MULTIPLICATION_OPERATOR, DIVISION_OPERATOR, EVALUATE_OPERATOR, PERCENT_OPERATOR, MEMORY_OPERATOR, CLEAR_OPERATOR };
   _nums       = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '.' };
   _wspace     = { ' ', '\t', '\n', '\r' };
   enter("0");   // Start with an empty value on the stack.
@@ -185,6 +186,13 @@ void TextCalculator::clear_all_memory() {
 //
 bool TextCalculator::is_operator(Op_ID id) {
   return (_ops.find(Op_ID(id)) != _ops.end());
+}
+
+
+// Return true if id is in _mem_ops
+//
+bool TextCalculator::is_mem_operator(Op_ID id) {
+  return (_mem_ops.find(Op_ID(id)) != _mem_ops.end());
 }
 
 
