@@ -1,6 +1,6 @@
 #include "KeyCalculator.h"
 
-#define CHANGESIGN_OPERATOR     (uint8_t('`'))
+#define CHANGE_SIGN_OPERATOR    (uint8_t('`'))
 #define BACKSPACE_OPERATOR      (uint8_t('B'))
 #define MAX_ARR_MEM_TO_SHOW     8
 #define CALC_NUMERIC_PRECISION  8
@@ -71,10 +71,10 @@ bool KeyCalculator::key(uint8_t code) {
 
   // These operations require more complex handling
   switch(code) {
-    case CHANGESIGN_OPERATOR: return _handle_change_sign();
-    case CLEAR_OPERATOR:      return _handle_clear(false);
-    case MEMORY_OPERATOR:     return _handle_memory_command(code);
-    default:                  return false;
+    case CHANGE_SIGN_OPERATOR:  return _handle_change_sign();
+    case CLEAR_OPERATOR:        return _handle_clear(false);
+    case MEMORY_OPERATOR:       return _handle_memory_command(code);
+    default:                    return false;
   }
   return false;
 }
@@ -91,12 +91,14 @@ String KeyCalculator::get_display() {
 }
 
 
-// Set the display value to val
+// Push val onto the value stack and clear _num_buffer_index so value() is diplayed.
+// Set _previous_key to the last character supplied, to that key() processing doesn't
+// add chaining or other special handling that's not appropriate.
 //
 void KeyCalculator::set_display(String val) {
-  strcpy(_num_buffer, val.c_str());
-  _num_buffer_index = strlen(_num_buffer);
-  _previous_key = _num_buffer[_num_buffer_index - 1];   // important: as if we had entered it key by key
+  _num_buffer_index = 0;                // so get_display goes to value() and not to buffer
+  enter(val);                           // push the value onto the stack
+  _previous_key = val[val.length()-1];  // Important: as if we had entered it key by key
 }
 
 
@@ -124,7 +126,7 @@ bool KeyCalculator::is_building_memory(String* str) {
 }
 
 
-// In numeric entry mode. BS can be used.
+// In numeric entry mode. Backspace can be used.
 //
 bool KeyCalculator::is_building_number() {
   return 0 != _num_buffer_index;
