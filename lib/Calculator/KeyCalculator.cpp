@@ -102,6 +102,7 @@ String KeyCalculator::get_display() {
 //
 void KeyCalculator::set_display(String val) {
   _num_buffer_index = 0;                // so get_display goes to value() and not to buffer
+  _num_buffer[0]    = 0;                // so it's not scanned even though index is zero
   enter(val);                           // push the value onto the stack
   _previous_key = val[val.length()-1];  // Important: as if we had entered it key by key
 }
@@ -386,9 +387,13 @@ bool KeyCalculator::_push_number() {
 // Convert the buffer to a String and clear it
 //
 String KeyCalculator::_convert_num_buffer(bool clear) {
-  if(clear) _num_buffer_index = 0;
+  String str(_num_buffer);
   if(DEBUG_KEY_CALCULATOR) Serial.printf("_convert_num_buffer: %s\n", _num_buffer);
-  return String(_num_buffer);
+  if(clear) {
+    _num_buffer_index = 0;
+    _num_buffer[0]    = '\0';
+  }
+  return str;
 }
 
 

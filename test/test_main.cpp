@@ -32,6 +32,7 @@ void loop() {
   run_key_memory_tests();
   run_key_number_tests();
   run_key_chaining_tests();
+  run_regression_tests();
 
   UNITY_END();  // stop unit testing
 }
