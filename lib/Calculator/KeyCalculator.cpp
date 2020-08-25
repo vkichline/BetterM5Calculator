@@ -61,7 +61,7 @@ bool KeyCalculator::key(uint8_t code) {
     return _build_number(code);
   }
 
-  _push_number();
+  _push_number();   // Converts the input buffer (if there's anything to convert)
 
   // See if its a simple operator
   if(is_operator(code)) {
@@ -196,7 +196,8 @@ String KeyCalculator::get_status_display() {
 }
 
 
-// Get representation of op stack
+// Get representation of operator stack for UI display.
+// Looks like:  [ + * ]
 //
 String KeyCalculator::get_operator_stack_display() {
   String result = "[ ";
@@ -209,7 +210,8 @@ String KeyCalculator::get_operator_stack_display() {
 }
 
 
-// Get representation of value stack
+// Get representation of value stack for UI display.
+// Looks like: [ 5 3.175 -99 ]
 //
 String KeyCalculator::get_value_stack_display() {
   String result = "[ ";
@@ -238,7 +240,7 @@ bool KeyCalculator::_handle_clear(bool all_clear) {
 }
 
 
-// Handle +/- key, which is an input action, not a command
+// Handle +/- key (Change Sign), which is an input action, not a command.
 //
 bool KeyCalculator::_handle_change_sign() {
   if(DEBUG_KEY_CALCULATOR) Serial.println("change_sign");
@@ -384,7 +386,7 @@ bool KeyCalculator::_push_number() {
 }
 
 
-// Convert the buffer to a String and clear it
+// Convert the buffer to a String and optionally clear it
 //
 String KeyCalculator::_convert_num_buffer(bool clear) {
   String str(_num_buffer);
