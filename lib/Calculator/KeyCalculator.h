@@ -17,9 +17,10 @@ class KeyCalculator : public TextCalculator {
   public:
     KeyCalculator();
     bool    key(uint8_t code);                                    // Process a key from the keyboard
+    bool    commit();                                             // If there is a value in the buffer, commit it to the stack
     String  get_display();                                        // Return the value being built, or the current value()
     void    set_display(String val);                              // Set the display value to val
-    bool    is_building_memory(String* str);                      // Are we entering a memory address? If so, return the string (unless nullptr)
+    bool    is_building_memory(String* str);                      // Is a memory address being built? If so, return it in str (unless nullptr)
     bool    is_building_number();                                 // In numeric entry mode. BS can be used.
     String  get_status_display();                                 // Get display string for top of calc.
     String  get_operator_stack_display();                         // Get representation of op stack
@@ -35,7 +36,6 @@ class KeyCalculator : public TextCalculator {
     bool    _handle_change_sign();                                // Handle +/- key, which is an input action, not a command
     bool    _handle_memory_command(uint8_t code);                 // Handle the rather complicated memory commands
     bool    _build_number(uint8_t code);                          // Build the display value from keystrokes
-    bool    _push_number();                                       // Push the display onto the value stack
     String  _convert_num_buffer(bool clear);                      // Convert the buffer to a String and clear it
     uint8_t _count_open_parens();                                 // Return the number of OPEN_PAREN operators on the operator_stack
 };

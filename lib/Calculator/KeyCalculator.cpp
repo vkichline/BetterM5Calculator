@@ -61,7 +61,7 @@ bool KeyCalculator::key(uint8_t code) {
     return _build_number(code);
   }
 
-  _push_number();   // Converts the input buffer (if there's anything to convert)
+  commit();   // Converts the input buffer (if there's anything to convert)
 
   // See if its a simple operator
   if(is_operator(code)) {
@@ -83,6 +83,22 @@ bool KeyCalculator::key(uint8_t code) {
   }
   return false;
 }
+
+
+// If there is a number being input in the _num_buffer, push it to the stack
+// and clear the _num_buffer.
+// Return true if a value was pushed, false if nothing happened.
+//
+bool KeyCalculator::commit() {
+  if(_num_buffer_index) {
+    String str = _convert_num_buffer(true);
+    if(DEBUG_KEY_CALCULATOR) Serial.printf("pushing %s onto the stack\n", str.c_str());
+    enter(str); // Do not return; push numver and continue processing
+    return true;
+  }
+  return false;
+}
+
 
 
 // If we're in number input mode, return the current _num_buffer
@@ -370,19 +386,6 @@ bool KeyCalculator::_build_number(uint8_t code) {
   _num_buffer[_num_buffer_index]   = '\0';
   if(DEBUG_KEY_CALCULATOR) Serial.printf("_build_number: %s\n", _num_buffer);
   return true;
-}
-
-
-// Not inputting a number anymore, so push any number that's been accumulated to the stack
-//
-bool KeyCalculator::_push_number() {
-  if(_num_buffer_index) {
-    String str = _convert_num_buffer(true);
-    if(DEBUG_KEY_CALCULATOR) Serial.printf("pushing %s onto the stack\n", str.c_str());
-    enter(str); // Do not return; push numver and continue processing
-    return true;
-  }
-  return false;
 }
 
 

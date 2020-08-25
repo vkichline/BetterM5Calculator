@@ -1,275 +1,37 @@
-#include <M5Stack.h>
+// M5 Calculator
+//
+// This program represents the fifth and top level of the calculator, and provides a specifically M5Stack implementation.
+// The structure of the code at this point is:
+// CoreCalculator   template, used to generate a double-precision floating point calculator
+// MemoryCalculator template, used to add 101 memories plus a memory stack
+// TextCalculator,            which provides a calculator that understand textual representations of numbers
+// KeyCalculator,             a TextCalculator specialized for calculator keyboard input, one key at a time
+// This program,              which is designed specifically for an M5Stack, and extends the calculator using its A/B/C buttons
+//
+// By Van Kichline
+// In the year of the plague
+
+
 #include <M5ez.h>
 #include <KeyCalculator.h>
 #include "screen_layout.h"
-#include "help_text.h"
+#include "screen_ui.h"
+#include "menu_ui.h"
 
-#define KEYBOARD_I2C_ADDR     0X08          // I2C address of the Calculator FACE
-#define KEYBOARD_INT          5             // Data ready pin for Calculator FACE (active low)
 
-#define BUTTONS_NUM_MODE      "BS # cancel # right"
-#define BUTTONS_MEM_MODE      "get # M # set # = # clear # AC"
-#define BUTTONS_NORMAL_0      "help # menu # right"
-#define BUTTONS_NORMAL_1      "( # ) # right"
-#define BUTTONS_NORMAL_2      "pi # e # right"
-#define BUTTONS_NORMAL_3      "push # pop # right"
-#define BUTTONS_NORMAL_4      "square # sqroot # right"
-#define NUM_BUTTON_SETS       5
+#define KEYBOARD_I2C_ADDR     0X08            // I2C address of the Calculator FACE
+#define KEYBOARD_INT          5               // Data ready pin for Calculator FACE (active low)
 
 
 KeyCalculator calc;
 TFT_eSprite   sprite          = TFT_eSprite(&M5.Lcd);
 String        button_sets[]   = { BUTTONS_NORMAL_0, BUTTONS_NORMAL_1, BUTTONS_NORMAL_2, BUTTONS_NORMAL_3, BUTTONS_NORMAL_4 };
 uint8_t       button_set      = 0;
-bool          cancel_bs       = false;  // If true, override displaying the BS buttons
-bool          stacks_visible  = true;   // Can be turned off in settings menu
+bool          cancel_bs       = false;        // If true, override displaying the BS buttons
+bool          stacks_visible  = true;         // Can be turned off in settings menu
 
 
-// Display the status of memory etc(?) in small text above value
-//
-void display_status() {
-  M5.Lcd.setTextFont(STAT_FONT);
-  M5.Lcd.setTextDatum(TL_DATUM);
-  M5.Lcd.setTextColor(STAT_FG_COLOR, STAT_BG_COLOR);  // Blank space erases background w/ background color set
-  M5.Lcd.fillRect(0, STAT_TOP, SCREEN_WIDTH, STAT_HEIGHT, STAT_BG_COLOR);
-  M5.Lcd.drawString(calc.get_status_display(), STAT_LEFT_MARGIN, STAT_TOP, STAT_FONT);
-}
-
-// Main display; show the number being entered or the current evaluation value.
-// Since the number can be wider than the display, and text wrapping always wraps to zero,
-// and I want a left margin, I must use a sprite to render then number.
-//
-void display_value() {
-  bool is_err = calc.get_error_state();
-  sprite.fillSprite(NUM_BG_COLOR);
-  sprite.setTextFont(NUM_FONT);
-  sprite.setTextColor(is_err ? RED :NUM_FG_COLOR, NUM_BG_COLOR);  // Blank space erases background w/ background color set
-  sprite.setTextWrap(true);
-
-  String   disp_value = calc.get_display();
-  uint16_t margin     = 0;
-  uint16_t wid        = sprite.textWidth(disp_value);
-  if(sprite.width() > wid) margin = sprite.width() - wid;
-  sprite.setCursor(margin, 0);
-  sprite.print(disp_value);
-  sprite.pushSprite(LEFT_MARGIN, NUM_TOP);
-}
-
-
-// Show the memory location we're building up (M, Mn, Mnn)
-// If we're in error mode, show the error instead
-//
-void display_memory_storage() {
-  String disp_value;
-  M5.Lcd.fillRect(0, MEM_TOP, SCREEN_WIDTH, MEM_HEIGHT, MEM_BG_COLOR);
-  Op_Err err = calc.get_error_state();
-  if(err) {
-    M5.Lcd.setTextFont(MEM_FONT);
-    M5.Lcd.setTextColor(RED, MEM_BG_COLOR);
-    switch (err) {
-      case ERROR_TOO_FEW_OPERANDS:  disp_value = "Too Few Operands";      break;
-      case ERROR_UNKNOWN_OPERATOR:  disp_value = "Unknown Operator";      break;
-      case ERROR_DIVIDE_BY_ZERO:    disp_value = "Divide by Zero";        break;
-      case ERROR_NO_MATCHING_PAREN: disp_value = "No Matching (";         break;
-      case ERROR_OVERFLOW:          disp_value = "Overflow";              break;
-      default:                      disp_value = "Unknown Error: " + err; break;
-    }
-    M5.Lcd.drawCentreString(disp_value.c_str(), SCREEN_H_CENTER, MEM_TOP + MEM_V_MARGIN, MEM_FONT);
-  }
-  else {
-    M5.Lcd.setTextFont(MEM_FONT);
-    if(calc.is_building_memory(&disp_value)) {
-      M5.Lcd.setTextColor(MEM_FG_COLOR, MEM_BG_COLOR);  // Blank space erases background w/ background color set
-      M5.Lcd.drawCentreString(disp_value.c_str(), SCREEN_H_CENTER, MEM_TOP + MEM_V_MARGIN, MEM_FONT);
-    }
-  }
-}
-
-
-// Show the memory location we're building up (M, Mn, Mnn)
-//
-void display_stacks() {
-  bool   is_err    = calc.get_error_state();
-  String op_stack  = calc.get_operator_stack_display();
-  String val_stack = calc.get_value_stack_display();
-  M5.Lcd.fillRect(0, STACK_TOP, SCREEN_WIDTH, STACK_HEIGHT,STACK_BG_COLOR);
-  if(stacks_visible && (3 < op_stack.length() || 3 < val_stack.length())) {
-    M5.Lcd.setTextDatum(TL_DATUM);
-    M5.Lcd.setTextFont(STACK_FONT);
-    M5.Lcd.setTextColor(is_err ? RED : STACK_FG_COLOR, STACK_BG_COLOR);  // Blank space erases background w/ background color set
-    M5.Lcd.drawString(op_stack.c_str(), LEFT_MARGIN, STACK_TOP + STACK_V_MARGIN, STACK_FONT);
-    M5.Lcd.setTextDatum(TR_DATUM);
-    M5.Lcd.drawString(val_stack.c_str(), SCREEN_WIDTH - RIGHT_MARGIN, STACK_TOP + STACK_V_MARGIN, STACK_FONT);
-    M5.Lcd.setTextDatum(TL_DATUM);
-  }
-}
-
-
-// Set the buttons at the bottom of the screen appropriately, depending on the mode
-//
-void set_buttons() {
-  bool num_mode = calc.is_building_number();
-  if(calc.is_building_memory(nullptr)) {
-    ez.buttons.show(BUTTONS_MEM_MODE);
-  }
-  else if(num_mode && !cancel_bs) {
-    ez.buttons.show(BUTTONS_NUM_MODE);
-  }
-  else {
-    ez.buttons.show(button_sets[button_set]);
-  }
-}
-
-
-// This is expected to get more complicated and smarter
-//
-void display_all() {
-  display_value();
-  display_status();
-  display_memory_storage();
-  set_buttons();
-  display_stacks();
-  ez.header.show("Calculator");   // restore the header after its been reused
-  ez.yield();
-}
-
-
-// Display a list of ten indexed memory values, starting at index
-//
-void show_indexed_memory_group(uint8_t index) {
-  ezMenu menu("Indexed Memory");
-  menu.txtSmall();
-  menu.buttons("up # back # down");
-  for(int i = 0; i < 10; i++) {
-    menu.addItem(String("M[") + String(index) + "]\t" + String(calc._calc.get_memory(index)));
-    index++;
-  }
-  menu.run();
-}
-
-
-// Display a menu for selecting a sub-group of indexed memories, broken up
-// by groups of ten. By each group, display how many memories in that group
-// are non-zero. Display the sub-group if selected.
-// Changes no values; display only.
-//
-void show_indexed_memory() {
-  int index = 0;
-  ezMenu menu("Indexed Memory");
-  menu.txtSmall();
-  menu.buttons("up # back # select ## down#");
-  // Add ten menus, reading like: "M[50] - M[59]    3"
-  for(int i = 0; i < 10; i++) {
-    int count = 0;
-    // count how many in this group are non-zero values
-    for(int j = 0; j < 10; j++) if(00 != calc._calc.get_memory(i*10+j)) count++;
-    menu.addItem(String("M[") + index + "] - M[" + (index+9) + "]\t" + (count ? String(count) : ""));
-    index += 10;
-  }
-  menu.addItem("back | Back to Calculator Settings");
-  while(menu.runOnce()) {
-    show_indexed_memory_group((menu.pick() - 1) * 10);
-  }
-}
-
-
-// If the memory stack is empty, show a notice. If not, show the entire stack.
-//
-void show_memory_stack() {
-  if(0 == calc._calc.get_memory_depth()) {
-    ez.msgBox("Memory Stack Empty", "There are no values in the memory stack.");
-  }
-  else {
-    ezMenu menu("Memory Stack");
-    menu.txtSmall();
-    menu.buttons("up # back #  down");
-    for(int i = calc._calc.get_memory_depth() - 1; i >= 0; i--) {
-      menu.addItem(calc.double_to_string(calc._calc.memory_stack[i]));
-    }
-    menu.run();
-  }
-}
-
-
-// Perform a few simple operations on the memory stack
-//
-void memory_stack_operations() {
-  ezMenu menu("Memory Stack Operations");
-  menu.txtSmall();
-  menu.buttons("up # back # select ## down #");
-  menu.addItem("Clear");
-  menu.addItem("Sum");
-  menu.addItem("Average");
-  menu.addItem("Count");
-  menu.addItem("back | Back to Calculator Settings");
-  while(menu.runOnce()) {
-    if(menu.pickName() == "Clear") calc._calc.clear_memory_stack();
-    else if(menu.pickName() == "Sum") {
-      double total = 0.0;
-      for(int i = 0; i < calc._calc.memory_stack.size(); i++)
-        total += calc._calc.memory_stack[i];
-      calc.set_display(calc.double_to_string(total));
-    }
-    else if(menu.pickName() == "Average") {
-      double total = 0.0;
-      int    depth = calc._calc.memory_stack.size();
-      if(depth) {
-        for(int i = 0; i < depth; i++)
-          total += calc._calc.memory_stack[i];
-        total /= depth;
-      }
-      calc.set_display(calc.double_to_string(total));
-    }
-    else if(menu.pickName() == "Count") {
-      calc.set_display(calc.double_to_string(calc._calc.memory_stack.size()));
-    }
-  }
-}
-
-
-// Display a menu of miscellaneous functions
-//
-void menu_menu() {
-  ezMenu menu("Calculator Settings");
-  menu.txtSmall();
-  menu.buttons("up # back # select ## down #");
-  menu.addItem(String("Stacks | Display Calc Stacks\t") + (stacks_visible ? "On" : "Off"));
-  menu.addItem("View Indexed Memory");
-  menu.addItem("View Memory Stack");
-  menu.addItem("Memory Stack Operations");
-  menu.addItem("Exit | Back to Calculator");
-  while(menu.runOnce()) {
-    if(menu.pickName() == "Exit") return;
-    else if(menu.pickName() == "Stacks") {
-      if(menu.pickCaption().endsWith("On")) {
-        menu.setCaption("Stacks", "Display Calc Stacks\tOff");
-        stacks_visible = false;
-      }
-      else {
-        menu.setCaption("Stacks", "Display Calc Stacks\tOn");
-        stacks_visible = true;
-      }
-    }
-    else if(menu.pickName() == "View Indexed Memory") {
-      show_indexed_memory();
-    }
-    else if(menu.pickName() == "View Memory Stack") {
-      show_memory_stack();
-    }
-    else if(menu.pickName() == "Memory Stack Operations") {
-      memory_stack_operations();
-    }
-  }
-}
-
-
-// Respond to the "?" button with some instructions
-//
-void help_screen() {
-  ez.textBox("Info", HELP_TEXT, true);
-}
-
-
+// Read a key from the calculator keyboard.
 //  Return true and change ref to input char if key is available, otherwise return false.
 //
 bool read_key(char& input) {
@@ -287,17 +49,20 @@ bool read_key(char& input) {
 }
 
 
-//  Read a key from the keyboard, or a button from the M5Stack.
+//  Read a key from the calculator keyboard, or a button from the M5Stack.
 //
 bool process_input() {
   char input;
 
+  // Process keyboard input. calc does all the work.
   if(read_key(input)) {
     if(calc.key(input) || calc.get_error_state()) {
       display_all();
       return true;
     }
   }
+
+  // See if any buttons have been pressed and if so, dispatch the indicated function
   String result = ez.buttons.poll();
   if(result.length()) {
     if (result == "right") {
@@ -325,17 +90,17 @@ bool process_input() {
     else if(result == "help")   help_screen();
     else if(result == "menu")   menu_menu();
     // normal 1
-    else if(result == "(")      calc.key('(');
-    else if(result == ")")      calc.key(')');
+    else if(result == "(")      calc.key(OPEN_PAREN_OPERATOR);
+    else if(result == ")")      calc.key(CLOSE_PAREN_OPERATOR);
     // normal 2
     else if(result == "pi")     calc.set_display("3.14159265");
     else if(result == "e")      calc.set_display("2.71828182");
     // normal 3
-    else if(result == "push")   { calc.key('='); calc.push(); }
-    else if(result == "pop")    { calc.key('=');  calc.pop(); }
+    else if(result == "push")   { calc.commit();  calc.push(); }
+    else if(result == "pop")    { calc.commit();  calc.pop(); }
     // normal 4
-    else if(result == "square") calc.key('s');
-    else if(result == "sqroot") calc.key('r');
+    else if(result == "square") calc.key(SQUARE_OPERATOR);
+    else if(result == "sqroot") calc.key(SQUARE_ROOT_OPERATOR);
 
     if (result != "right") {
       cancel_bs = false; // get out of cancel_bs as soon as any non-right button pressed.
@@ -348,7 +113,7 @@ bool process_input() {
 }
 
 
-// See if the calculator keyboard is attached.
+// See if the calculator keyboard is attached. Show a message if it is not.
 // Assumes Wire.begin() has been called.
 //
 bool test_for_keyboard() {
@@ -359,6 +124,8 @@ bool test_for_keyboard() {
 }
 
 
+// Arduino setup function, called once at beginning of program
+//
 void setup() {
   ez.begin();
   Wire.begin();
@@ -370,6 +137,8 @@ void setup() {
 }
 
 
+// Arduino loop function, called repeatedly
+//
 void loop() {
   process_input();
   delay(100);
