@@ -145,16 +145,22 @@ void show_indexed_memory_group(uint8_t index) {
 }
 
 
-// Display a menu for selecting a sub-group of indexed memories
+// Display a menu for selecting a sub-group of indexed memories, broken up
+// by groups of ten. By each group, display how many memories in that group
+// are non-zero. Display the sub-group if selected.
+// Changes no values; display only.
 //
 void show_indexed_memory() {
   int index = 0;
   ezMenu menu("Indexed Memory");
   menu.txtSmall();
   menu.buttons("up # back # select ## down#");
-  // Add ten menus, reading like: M[50] - M[59]
+  // Add ten menus, reading like: "M[50] - M[59]    3"
   for(int i = 0; i < 10; i++) {
-    menu.addItem(String("M[") + index + "] - M[" + (index+9) + "]");
+    int count = 0;
+    // count how many in this group are non-zero values
+    for(int j = 0; j < 10; j++) if(00 != calc._calc.get_memory(i*10+j)) count++;
+    menu.addItem(String("M[") + index + "] - M[" + (index+9) + "]\t" + (count ? String(count) : ""));
     index += 10;
   }
   menu.addItem("back | Back to Calculator Settings");
