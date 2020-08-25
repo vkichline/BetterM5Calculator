@@ -15,7 +15,7 @@ void test_i_all_operators() {
   TEST_ASSERT_EQUAL(NO_ERROR, icalc.push_value(6));
   TEST_ASSERT_EQUAL(NO_ERROR, icalc.push_operator('*'));
   TEST_ASSERT_EQUAL(NO_ERROR, icalc.push_value(3));
-  TEST_ASSERT_EQUAL(NO_ERROR, icalc.evaluate());
+  TEST_ASSERT_EQUAL(NO_ERROR, icalc.evaluate_all());
   TEST_ASSERT_EQUAL_DOUBLE(-72, icalc.pop_value());
   TEST_ASSERT_EQUAL(0, icalc.operator_stack.size());
   TEST_ASSERT_EQUAL(0, icalc.value_stack.size());
@@ -35,7 +35,7 @@ void test_i_parens() {
   icalc.push_operator('+');
   icalc.push_value(1.0);
   icalc.push_operator(')');
-  icalc.evaluate();
+  icalc.evaluate_all();
   TEST_ASSERT_EQUAL_DOUBLE(11.0, icalc.pop_value());
   TEST_ASSERT_EQUAL(0, icalc.operator_stack.size());
   TEST_ASSERT_EQUAL(0, icalc.value_stack.size());

@@ -67,6 +67,7 @@ void display_memory_storage() {
       case ERROR_TOO_FEW_OPERANDS:  disp_value = "Too Few Operands";      break;
       case ERROR_UNKNOWN_OPERATOR:  disp_value = "Unknown Operator";      break;
       case ERROR_DIVIDE_BY_ZERO:    disp_value = "Divide by Zero";        break;
+      case ERROR_NO_MATCHING_PAREN: disp_value = "No Matching (";         break;
       case ERROR_OVERFLOW:          disp_value = "Overflow";              break;
       default:                      disp_value = "Unknown Error: " + err; break;
     }

@@ -102,7 +102,7 @@ bool TextCalculator::enter(Op_ID id) {
 // Evaluate all operations (like pushing '=')
 //
 Op_Err TextCalculator::total() {
-  return _calc.evaluate();
+  return _calc.evaluate_all();
 }
 
 

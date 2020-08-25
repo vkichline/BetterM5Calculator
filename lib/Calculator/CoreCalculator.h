@@ -20,7 +20,8 @@
 #define ERROR_UNKNOWN_OPERATOR    -2                            // Calculation error: the operator is not recognized
 #define ERROR_DIVIDE_BY_ZERO      -3                            // Calculation error: divide by zero
 #define ERROR_SET_NOERROR         -4                            // You cannot set the error state to NONE, you must use clear_error_state()
-#define ERROR_OVERFLOW            -5
+#define ERROR_NO_MATCHING_PAREN   -5                            // Evaluated more close parens than open parens
+#define ERROR_OVERFLOW            -6
 
 #define DEBUG_OPERATORS            0                            // 0 is quiet, 1 spews info for debugging operators
 #define DEBUG_EVALUATION           0                            // 0 is quiet, 1 spews info for debugging evaluations
@@ -56,7 +57,7 @@ class CoreCalculator {
     Op_ID                         pop_operator();               // Return the top value of the operator_stack after removing it from the stack (OP_ID_NONE if empty)
     Op_ID                         peek_operator();              // Return the top value of the operator_stack without changing the stack (OP_ID_NONE if empty)
     Op_Err                        evaluate_one();               // Evaluate the top operator on the operator_stack (if any)
-    Op_Err                        evaluate();                   // Evaluate the operator_stack until its empty
+    Op_Err                        evaluate_all();               // Evaluate the operator_stack until its empty
     T                             get_value();                  // Top of the operand_stack, or 0.0 if stack is empty
     Op_Err                        clear();                      // Change value to zero
     Op_Err                        set_error_state(Op_Err err);  // Set the global error state. Return the previous error state. (Cannot be set to NO_ERROR)
@@ -219,6 +220,10 @@ class CloseParenOperator : public Operator<T> {
       while(OPEN_PAREN_OPERATOR != Operator<T>::_host->peek_operator()) {
         Op_Err err = Operator<T>::_host->evaluate_one();
         if(err) return err;
+        // It's not an error to evaluate an empty operator_stack, but it means
+        // there is no matching OPEN_PAREN and we'd be stuck here forever.
+        if(0 == Operator<T>::_host->operator_stack.size())
+          return ERROR_NO_MATCHING_PAREN;
       }
       Operator<T>::_host->pop_operator();
       return NO_ERROR;
@@ -339,8 +344,8 @@ template <typename T> Op_Err CoreCalculator<T>::push_operator(Op_ID id) {
   // The EVALUATE_OPERATOR is handled specially here. It's not in _operators
   if(EVALUATE_OPERATOR == id) {
     if(DEBUG_OPERATORS) Serial.println("\nOperator = : evaluating the entire stack\n");
-    result =  evaluate();
-    if(DEBUG_OPERATORS) Serial.printf("evaluate() returned %d\n", result);
+    result =  evaluate_all();
+    if(DEBUG_OPERATORS) Serial.printf("evaluate_all() returned %d\n", result);
     return result;
   }
   if(DEBUG_OPERATORS) Serial.printf("\nPushing operator %c\n", id);
@@ -386,7 +391,7 @@ template <typename T> Op_ID CoreCalculator<T>::peek_operator() {
 // Evaluate the operator_stack until its empty and there's only one operand
 // (Typical response to the = key)
 //
-template <typename T> Op_Err CoreCalculator<T>::evaluate() {
+template <typename T> Op_Err CoreCalculator<T>::evaluate_all() {
   while(1 <= operator_stack.size()) {
     Op_Err err = evaluate_one();
     if(err) {
