@@ -37,4 +37,5 @@ class KeyCalculator : public TextCalculator {
     bool    _build_number(uint8_t code);                          // Build the display value from keystrokes
     bool    _push_number();                                       // Push the display onto the value stack
     String  _convert_num_buffer(bool clear);                      // Convert the buffer to a String and clear it
+    uint8_t _count_open_parens();                                 // Return the number of OPEN_PAREN operators on the operator_stack
 };

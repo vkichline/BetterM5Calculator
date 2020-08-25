@@ -65,6 +65,11 @@ bool KeyCalculator::key(uint8_t code) {
 
   // See if its a simple operator
   if(is_operator(code)) {
+    // Do not allow a CLOSE_PAREN_OPERATOR on the stack unless there's a matching OPEN_PAREN_OPERATOR
+    if(CLOSE_PAREN_OPERATOR == code && 0 == _count_open_parens()) {
+      if(DEBUG_KEY_CALCULATOR) Serial.println("Rejecting close paren because there is no matching open paren.");
+      return false;
+    }
     if(DEBUG_KEY_CALCULATOR) Serial.printf("pushing operator '%c'\n", code);
     return enter(code);
   }
@@ -134,13 +139,25 @@ bool KeyCalculator::is_building_number() {
 
 
 // Construct a string for a calculator to display showing status.
+// It may be entirely empty, or as complex as:  (( M[1,2,4,6,7,18.37,81,...]  S(5)  M=3.14159265
 //
 String KeyCalculator::get_status_display() {
   String  str         = "";
+  uint8_t paren_count = _count_open_parens();
   uint8_t arr_count   = 0;
   uint8_t stack_count = _calc.get_memory_depth();
   double  mem         = _calc.get_memory();
 
+  // Begin by showing how many open parens there are on the stack (if any).
+  // This part of the status string leads and looks like: (((
+  if(paren_count) {
+    for(int i = 0; i < paren_count; i++) str += "(";
+    str += " ";
+  }
+
+  // Next, display info about indexed memories. Show the indexes of up to
+  // eight; if there are more add ...
+  // This part of the status string looks like: M[0,1,2,3]
   for(uint8_t i = 0; i < NUM_CALC_MEMORIES; i++) {
     if(0.0 != _calc.get_memory(i)) {
       if(0 == arr_count++) str += "M[";
@@ -158,11 +175,18 @@ String KeyCalculator::get_status_display() {
     str[str.length() - 1] = ']';
     str += "  ";
   }
+
+  // Next, display info about the memory stack. If it is non-empty, add
+  // S(n), where n is the number of items on the stack.
+  // This part of the status string looks like: S(2)
   if(stack_count) {
     str += "S(";
     str += stack_count;
     str += ")  ";
   }
+
+  // Finally, if simple memory is set, display its value.
+  // This part of the status string looks like: M=3.14159265
   if(0.0 != mem) {
     str += "M=";
     str += double_to_string(mem);
@@ -368,4 +392,12 @@ String KeyCalculator::_convert_num_buffer(bool clear) {
 }
 
 
-
+// Return the number of OPEN_PAREN operators on the operator_stack
+//
+uint8_t KeyCalculator::_count_open_parens() {
+  uint8_t count = 0;
+  for(int i = 0; i < _calc.operator_stack.size(); i++) {
+    if(OPEN_PAREN_OPERATOR == _calc.operator_stack[i]) count++;
+  }
+  return count;
+}
