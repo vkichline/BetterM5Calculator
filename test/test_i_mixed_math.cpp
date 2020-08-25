@@ -55,8 +55,30 @@ void test_i_evaluate() {
 }
 
 
+void test_i_square() {
+  TEST_ASSERT_EQUAL(NO_ERROR, icalc.push_value(25));
+  TEST_ASSERT_EQUAL(NO_ERROR, icalc.push_operator('s'));
+  TEST_ASSERT_EQUAL(NO_ERROR, icalc.push_operator('='));
+  TEST_ASSERT_EQUAL(625, icalc.pop_value());
+  TEST_ASSERT_EQUAL(0, icalc.operator_stack.size());
+  TEST_ASSERT_EQUAL(0, icalc.value_stack.size());
+}
+
+
+void test_i_square_root() {
+  TEST_ASSERT_EQUAL(NO_ERROR, icalc.push_value(25));
+  TEST_ASSERT_EQUAL(NO_ERROR, icalc.push_operator('r'));
+  TEST_ASSERT_EQUAL(NO_ERROR, icalc.push_operator('='));
+  TEST_ASSERT_EQUAL(5, icalc.pop_value());
+  TEST_ASSERT_EQUAL(0, icalc.operator_stack.size());
+  TEST_ASSERT_EQUAL(0, icalc.value_stack.size());
+}
+
+
 void run_i_mixed_math_tests() {
   RUN_TEST(test_i_all_operators);
   RUN_TEST(test_i_parens);
   RUN_TEST(test_i_evaluate);
+  RUN_TEST(test_i_square);
+  RUN_TEST(test_i_square_root);
 }

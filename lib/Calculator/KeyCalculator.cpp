@@ -49,7 +49,7 @@ bool KeyCalculator::key(uint8_t code) {
     if(ADDITION_OPERATOR       == _previous_key || SUBTRACTION_OPERATOR == _previous_key ||
        MULTIPLICATION_OPERATOR == _previous_key || DIVISION_OPERATOR    == _previous_key) {
       // can't use push_number() here
-      Serial.printf("Pushing %.4f in chaining mode\n", value());
+      if(DEBUG_KEY_CALCULATOR) Serial.printf("Pushing %.4f in chaining mode\n", _calc.get_value());
       enter(value());
     }
   }
@@ -95,7 +95,7 @@ String KeyCalculator::get_display() {
 //
 void KeyCalculator::set_display(String val) {
   strcpy(_num_buffer, val.c_str());
-  _num_buffer_index = 0;
+  _num_buffer_index = strlen(_num_buffer);
 }
 
 

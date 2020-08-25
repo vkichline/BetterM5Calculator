@@ -11,13 +11,12 @@
 #define BUTTONS_NORMAL_2      "pi # e # right"
 #define BUTTONS_NORMAL_3      "push # pop # right"
 #define BUTTONS_NORMAL_4      "square # sqroot # right"
-#define BUTTONS_NORMAL_5      "inv # fact # right"
-#define NUM_BUTTON_SETS       6
+#define NUM_BUTTON_SETS       5
 
 
 KeyCalculator calc;
 TFT_eSprite   sprite          = TFT_eSprite(&M5.Lcd);
-String        button_sets[]   = { BUTTONS_NORMAL_0, BUTTONS_NORMAL_1, BUTTONS_NORMAL_2, BUTTONS_NORMAL_3, BUTTONS_NORMAL_4, BUTTONS_NORMAL_5 };
+String        button_sets[]   = { BUTTONS_NORMAL_0, BUTTONS_NORMAL_1, BUTTONS_NORMAL_2, BUTTONS_NORMAL_3, BUTTONS_NORMAL_4 };
 uint8_t       button_set      = 0;
 bool          cancel_bs       = false;  // If true, override displaying the BS buttons
 bool          stacks_visible  = true;   // Can be turned off in settings menu
@@ -106,8 +105,6 @@ void display_stacks() {
 //
 void set_buttons() {
   bool num_mode = calc.is_building_number();
-  if(!num_mode) cancel_bs = false;  // make sure this special mode gets cleared asap
-
   if(calc.is_building_memory(nullptr)) {
     ez.buttons.show(BUTTONS_MEM_MODE);
   }
@@ -196,7 +193,7 @@ bool process_input() {
   String result = ez.buttons.poll();
   if(result.length()) {
     if (result == "right") {
-      if(calc.is_building_number()) {
+      if(calc.is_building_number() && !cancel_bs) {
         // Special case: we're displaying the BUTTONS_NUM_MODE menu, and want to get out of it.
         cancel_bs = true;
       }
@@ -210,7 +207,7 @@ bool process_input() {
     else if(result == "get")    calc.key('M');  // In memory mode: retrieve
     else if(result == "set")    calc.key('=');  // In memory mode: st
     else if(result == "clear")  calc.key('A');  // In memory mode: clear
-    if     (result == "M")      calc.key('M');  // In memory mode: retrieve
+    else if(result == "M")      calc.key('M');  // In memory mode: retrieve
     else if(result == "=")      calc.key('=');  // In memory mode: st
     else if(result == "AC")     calc.key('A');  // In memory mode: clear
     // number entry mode
@@ -226,14 +223,15 @@ bool process_input() {
     else if(result == "pi")     calc.set_display("3.14159265");
     else if(result == "e")      calc.set_display("2.71828182");
     // normal 3
-    else if(result == "push")   calc.push();
-    else if(result == "pop")    calc.pop();
+    else if(result == "push")   { calc.key('='); calc.push(); }
+    else if(result == "pop")    { calc.key('=');  calc.pop(); }
     // normal 4
-    else if(result == "square") return false;   // BUGBUG
-    else if(result == "sqroot") return false;   // BUGBUG
-    // normal 5
-    else if(result == "inv") return false;     // BUGBUG
-    else if(result == "fact") return false;    // BUGBUG
+    else if(result == "square") calc.key('s');
+    else if(result == "sqroot") calc.key('r');
+
+    if (result != "right") {
+      cancel_bs = false; // get out of cancel_bs as soon as any non-right button pressed.
+    }
 
     display_all();
     return true;

@@ -32,6 +32,8 @@
 #define PERCENT_OPERATOR          (uint8_t('%'))
 #define OPEN_PAREN_OPERATOR       (uint8_t('('))
 #define CLOSE_PAREN_OPERATOR      (uint8_t(')'))
+#define SQUARE_OPERATOR           (uint8_t('s'))
+#define SQUARE_ROOT_OPERATOR      (uint8_t('r'))
 #define EVALUATE_OPERATOR         (uint8_t('='))                // This is a special operator that is not implemented as a class or added to _operators
 
 
@@ -257,6 +259,42 @@ class PercentOperator : public Operator<T> {
     }
 };
 
+// Square the number on the stack
+//
+template <typename T>
+class SquareOperator : public Operator<T> {
+  public:
+    SquareOperator(CoreCalculator<T>* host) : Operator<T>(host) {
+      Operator<T>::id          = SQUARE_OPERATOR;
+      Operator<T>::precedence  = 150;
+    }
+    bool    enough_values() { return (1 <= Operator<T>::_host->value_stack.size()); }
+    Op_Err  operate() {
+      if(!enough_values())  return ERROR_TOO_FEW_OPERANDS;
+      Operator<T>::_host->push_operator('*');
+      Operator<T>::_host->push_value(Operator<T>::_host->get_value());
+      return NO_ERROR;
+    }
+};
+
+// Calculate the square root of the number on the stack
+//
+template <typename T>
+class SquareRootOperator : public Operator<T> {
+  public:
+    SquareRootOperator(CoreCalculator<T>* host) : Operator<T>(host) {
+      Operator<T>::id          = SQUARE_ROOT_OPERATOR;
+      Operator<T>::precedence  = 150;
+    }
+    bool    enough_values() { return (1 <= Operator<T>::_host->value_stack.size()); }
+    Op_Err  operate() {
+      if(!enough_values())  return ERROR_TOO_FEW_OPERANDS;
+      T op = Operator<T>::_host->pop_value();
+      op = T(sqrt(double(op)));
+      Operator<T>::_host->push_value(op);
+      return NO_ERROR;
+    }
+};
 
 ////////////////////////////////////////////////////////////////////////////////
 //
@@ -441,6 +479,8 @@ template <typename T> void CoreCalculator<T>::_initialize_operators() {
   _operators.insert(std::pair<Op_ID, Operator<T>*>(OPEN_PAREN_OPERATOR,     new OpenParenOperator<T>(this)));
   _operators.insert(std::pair<Op_ID, Operator<T>*>(CLOSE_PAREN_OPERATOR,    new CloseParenOperator<T>(this)));
   _operators.insert(std::pair<Op_ID, Operator<T>*>(PERCENT_OPERATOR,        new PercentOperator<T>(this)));
+  _operators.insert(std::pair<Op_ID, Operator<T>*>(SQUARE_OPERATOR,         new SquareOperator<T>(this)));
+  _operators.insert(std::pair<Op_ID, Operator<T>*>(SQUARE_ROOT_OPERATOR,    new SquareRootOperator<T>(this)));
 }
 
 // Writes operator_stack and value_stack to Serial for debugging

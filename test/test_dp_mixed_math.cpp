@@ -55,8 +55,30 @@ void test_dp_evaluate() {
 }
 
 
+void test_dp_square() {
+  TEST_ASSERT_EQUAL(NO_ERROR, dpcalc.push_value(25));
+  TEST_ASSERT_EQUAL(NO_ERROR, dpcalc.push_operator('s'));
+  TEST_ASSERT_EQUAL(NO_ERROR, dpcalc.push_operator('='));
+  TEST_ASSERT_EQUAL(625, dpcalc.pop_value());
+  TEST_ASSERT_EQUAL(0, dpcalc.operator_stack.size());
+  TEST_ASSERT_EQUAL(0, dpcalc.value_stack.size());
+}
+
+
+void test_dp_square_root() {
+  TEST_ASSERT_EQUAL(NO_ERROR, dpcalc.push_value(25));
+  TEST_ASSERT_EQUAL(NO_ERROR, dpcalc.push_operator('r'));
+  TEST_ASSERT_EQUAL(NO_ERROR, dpcalc.push_operator('='));
+  TEST_ASSERT_EQUAL(5, dpcalc.pop_value());
+  TEST_ASSERT_EQUAL(0, dpcalc.operator_stack.size());
+  TEST_ASSERT_EQUAL(0, dpcalc.value_stack.size());
+}
+
+
 void run_dp_mixed_math_tests() {
   RUN_TEST(test_dp_all_operators);
   RUN_TEST(test_dp_parens);
   RUN_TEST(test_dp_evaluate);
+  RUN_TEST(test_dp_square);
+  RUN_TEST(test_dp_square_root);
 }
