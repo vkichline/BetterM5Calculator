@@ -96,6 +96,7 @@ String KeyCalculator::get_display() {
 void KeyCalculator::set_display(String val) {
   strcpy(_num_buffer, val.c_str());
   _num_buffer_index = strlen(_num_buffer);
+  _previous_key = _num_buffer[_num_buffer_index - 1];   // important: as if we had entered it key by key
 }
 
 
