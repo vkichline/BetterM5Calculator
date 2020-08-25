@@ -108,7 +108,7 @@ Op_Err TextCalculator::total() {
 
 // Returns the current value from the top of the value stack as a String
 String TextCalculator::value() {
-  return _double_to_string(_calc.get_value());
+  return double_to_string(_calc.get_value());
 }
 
 
@@ -231,7 +231,7 @@ void TextCalculator::clear_error_state() {
 // This algorithm only works for positive numbers, so for negative numbers
 // insert a - in the buffer and invert val
 //
-String TextCalculator::_double_to_string(double val) {
+String TextCalculator::double_to_string(double val) {
   if(0.0 == val) return String("0");
   double  threshold   = 1.0 / pow(10.0, _precision);  // Precision is a private member variable
   int     m           = log10(ceil(abs(val)));

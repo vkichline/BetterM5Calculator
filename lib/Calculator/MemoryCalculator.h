@@ -29,8 +29,8 @@ class MemoryCalculator : public CoreCalculator<T> {
     void            clear_memory_stack();                       // Clear the memory stack
     void            clear_all_memory();                         // Clear simple, indexed and stack memory
     uint8_t         get_mem_array_size();                       // The value of M
-protected:
     std::vector<T>  memory_stack;                               // A memory stack. It would be nice if <stack> compiled.
+protected:
     T               memory;                                     // The simplest to access memory
     T               memories[M];                                // The array of indexed memory
 };

@@ -113,7 +113,7 @@ bool KeyCalculator::is_building_memory(String* str) {
         default: return false;
       }
       *str += "]  (";
-      *str += _double_to_string(_mem_buffer_index ? _calc.get_memory(atoi(_mem_buffer)) : _calc.get_memory());
+      *str += double_to_string(_mem_buffer_index ? _calc.get_memory(atoi(_mem_buffer)) : _calc.get_memory());
       *str += ")";
     }
     return true;
@@ -162,7 +162,7 @@ String KeyCalculator::get_status_display() {
   }
   if(0.0 != mem) {
     str += "M=";
-    str += _double_to_string(mem);
+    str += double_to_string(mem);
   }
   return str;
 }
@@ -186,7 +186,7 @@ String KeyCalculator::get_operator_stack_display() {
 String KeyCalculator::get_value_stack_display() {
   String result = "[ ";
   for(int i = 0; i < _calc.value_stack.size(); i++) {
-    result += _double_to_string(_calc.value_stack[i]);
+    result += double_to_string(_calc.value_stack[i]);
     result += " ";
   }
   result += "]";
