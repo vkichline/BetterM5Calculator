@@ -4,6 +4,9 @@
 #include "screen_layout.h"
 #include "help_text.h"
 
+#define KEYBOARD_I2C_ADDR     0X08          // I2C address of the Calculator FACE
+#define KEYBOARD_INT          5             // Data ready pin for Calculator FACE (active low)
+
 #define BUTTONS_NUM_MODE      "BS # cancel # right"
 #define BUTTONS_MEM_MODE      "get # M # set # = # clear # AC"
 #define BUTTONS_NORMAL_0      "help # menu # right"
@@ -210,9 +213,11 @@ void memory_stack_operations() {
     else if(menu.pickName() == "Average") {
       double total = 0.0;
       int    depth = calc._calc.memory_stack.size();
-      for(int i = 0; i < depth; i++)
-        total += calc._calc.memory_stack[i];
-      total /= depth;
+      if(depth) {
+        for(int i = 0; i < depth; i++)
+          total += calc._calc.memory_stack[i];
+        total /= depth;
+      }
       calc.set_display(calc.double_to_string(total));
     }
     else if(menu.pickName() == "Count") {
@@ -343,10 +348,22 @@ bool process_input() {
 }
 
 
+// See if the calculator keyboard is attached.
+// Assumes Wire.begin() has been called.
+//
+bool test_for_keyboard() {
+  Wire.beginTransmission(KEYBOARD_I2C_ADDR);
+  bool found = (0 == Wire.endTransmission ());
+  if(!found) ez.msgBox("Keyboard Error", "ERROR: No FACES Calculator Keyboard found at I2C address 0X08.\nNo Keyboard,\nNo Calculator!");
+  return found;
+}
+
+
 void setup() {
   ez.begin();
   Wire.begin();
   pinMode(KEYBOARD_INT, INPUT_PULLUP);
+  test_for_keyboard();
   sprite.createSprite(SCREEN_WIDTH - LEFT_MARGIN - RIGHT_MARGIN, NUM_HEIGHT);
   M5.Lcd.setTextSize(1);
   display_all();

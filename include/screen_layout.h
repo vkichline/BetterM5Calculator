@@ -1,6 +1,3 @@
-#define KEYBOARD_I2C_ADDR     0X08          // I2C address of the Calculator FACE
-#define KEYBOARD_INT          5             // Data ready pin for Calculator FACE (active low)
-
 #define SCREEN_WIDTH          320           // Horizontal screen size
 #define SCREEN_H_CENTER       160           // Horizontal center of screen
 #define FG_COLOR              BLACK         // Arbitrary foreground color
