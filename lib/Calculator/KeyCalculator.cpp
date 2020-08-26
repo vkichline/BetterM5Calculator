@@ -66,6 +66,15 @@ bool KeyCalculator::key(uint8_t code) {
     }
   }
 
+  // If we are in calcReadyForNumber state, and there's an operator on the stack, we must be waiting for
+  // the second operator. If another operator comes in here, it should replace the operator on top of
+  // the operator_stack. For example:
+  // User inputs 15 + *.  Interpret this to mean: "I meant *, not +".
+  if((calcReadyForNumber == _state) && is_operator(code) && (0 != _calc.operator_stack.size())) {
+    _calc.operator_stack.back() = code;
+    return true;  // Do not change the state
+  }
+
   // Handle numbers. This may include 0-9, decimal, B for backspace and the open paren
   if(calcReadyForAny == _state || calcReadyForNumber == _state || calcEnteringNumber == _state) {
     // Next, see if a number is being entered (with B for Backspace)

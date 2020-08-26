@@ -141,5 +141,5 @@ void setup() {
 //
 void loop() {
   process_input();
-  delay(100);
+  delay(10);
 }
