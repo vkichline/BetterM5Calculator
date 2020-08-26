@@ -250,6 +250,7 @@ class PercentOperator : public Operator<T> {
       if(0 == Operator<T>::_host->operator_stack.size()) {
         Operator<T>::_host->push_operator('/');
         Operator<T>::_host->push_value(T(100));
+        Operator<T>::_host->evaluate_one();
       }
       else {
         // BUGBUG: HOW SHOULD 30 / 6 % = ACT?
@@ -259,6 +260,8 @@ class PercentOperator : public Operator<T> {
         Operator<T>::_host->push_value(temp);
         Operator<T>::_host->push_operator('/');
         Operator<T>::_host->push_value(T(100));
+        Operator<T>::_host->evaluate_one();
+        Operator<T>::_host->evaluate_one();
       }
       return NO_ERROR;
     }
@@ -278,6 +281,7 @@ class SquareOperator : public Operator<T> {
       if(!enough_values())  return ERROR_TOO_FEW_OPERANDS;
       Operator<T>::_host->push_operator('*');
       Operator<T>::_host->push_value(Operator<T>::_host->get_value());
+      Operator<T>::_host->evaluate_one();
       return NO_ERROR;
     }
 };
