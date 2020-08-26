@@ -80,7 +80,7 @@ void memory_stack_operations() {
       double total = 0.0;
       for(int i = 0; i < calc._calc.memory_stack.size(); i++)
         total += calc._calc.memory_stack[i];
-      calc.set_display(calc.double_to_string(total));
+      calc.set_value(calc.double_to_string(total));
     }
     else if(menu.pickName() == "Average") {
       double total = 0.0;
@@ -90,10 +90,10 @@ void memory_stack_operations() {
           total += calc._calc.memory_stack[i];
         total /= depth;
       }
-      calc.set_display(calc.double_to_string(total));
+      calc.set_value(calc.double_to_string(total));
     }
     else if(menu.pickName() == "Count") {
-      calc.set_display(calc.double_to_string(calc._calc.memory_stack.size()));
+      calc.set_value(calc.double_to_string(calc._calc.memory_stack.size()));
     }
   }
 }

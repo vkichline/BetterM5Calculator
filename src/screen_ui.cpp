@@ -14,7 +14,7 @@ void display_status() {
   M5.Lcd.setTextDatum(TL_DATUM);
   M5.Lcd.setTextColor(STAT_FG_COLOR, STAT_BG_COLOR);  // Blank space erases background w/ background color set
   M5.Lcd.fillRect(0, STAT_TOP, SCREEN_WIDTH, STAT_HEIGHT, STAT_BG_COLOR);
-  M5.Lcd.drawString(calc.get_status_display(), STAT_LEFT_MARGIN, STAT_TOP, STAT_FONT);
+  M5.Lcd.drawString(calc.get_display(dispStatus), STAT_LEFT_MARGIN, STAT_TOP, STAT_FONT);
 }
 
 
@@ -29,7 +29,7 @@ void display_value() {
   sprite.setTextColor(is_err ? ERROR_COLOR :NUM_FG_COLOR, NUM_BG_COLOR);  // Blank space erases background w/ background color set
   sprite.setTextWrap(true);
 
-  String   disp_value = calc.get_display();
+  String   disp_value = calc.get_display(dispValue);
   uint16_t margin     = 0;
   uint16_t wid        = sprite.textWidth(disp_value);
   if(sprite.width() > wid) margin = sprite.width() - wid;
@@ -63,7 +63,8 @@ void display_memory_storage() {
   }
   else {
     M5.Lcd.setTextFont(MEM_FONT);
-    if(calc.is_building_memory(&disp_value)) {
+    if(calcEnteringMemory == calc.get_state()) {
+      disp_value = calc.get_display(dispMemoryID);
       M5.Lcd.setTextColor(MEM_FG_COLOR, MEM_BG_COLOR);  // Blank space erases background w/ background color set
       M5.Lcd.drawCentreString(disp_value.c_str(), SCREEN_H_CENTER, MEM_TOP + MEM_V_MARGIN, MEM_FONT);
     }
@@ -77,8 +78,8 @@ void display_memory_storage() {
 //
 void display_stacks() {
   bool   is_err    = calc.get_error_state();
-  String op_stack  = calc.get_operator_stack_display();
-  String val_stack = calc.get_value_stack_display();
+  String op_stack  = calc.get_display(dispOpStack);
+  String val_stack = calc.get_display(dispValStack);
   M5.Lcd.fillRect(0, STACK_TOP, SCREEN_WIDTH, STACK_HEIGHT,STACK_BG_COLOR);
   if(stacks_visible && (3 < op_stack.length() || 3 < val_stack.length())) {
     M5.Lcd.setTextDatum(TL_DATUM);
@@ -95,11 +96,10 @@ void display_stacks() {
 // Set the buttons at the bottom of the screen appropriately, depending on the mode
 //
 void set_buttons() {
-  bool num_mode = calc.is_building_number();
-  if(calc.is_building_memory(nullptr)) {
+  if(calcEnteringMemory == calc.get_state()) {
     ez.buttons.show(BUTTONS_MEM_MODE);
   }
-  else if(num_mode && !cancel_bs) {
+  else if(!cancel_bs && calcEnteringNumber == calc.get_state()) {
     ez.buttons.show(BUTTONS_NUM_MODE);
   }
   else {

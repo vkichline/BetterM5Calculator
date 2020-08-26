@@ -66,7 +66,7 @@ bool process_input() {
   String result = ez.buttons.poll();
   if(result.length()) {
     if (result == "right") {
-      if(calc.is_building_number() && !cancel_bs) {
+      if(!cancel_bs && calcEnteringNumber == calc.get_state()) {
         // Special case: we're displaying the BUTTONS_NUM_MODE menu, and want to get out of it.
         cancel_bs = true;
       }
@@ -85,7 +85,7 @@ bool process_input() {
     else if(result == "AC")     calc.key('A');  // In memory mode: clear
     // number entry mode
     else if(result == "BS")     calc.key('B');  // KeyCalculator command for backspace
-    else if(result == "cancel") while(calc.is_building_number()) calc.key('B');  // to cancel input, we backspace until we can't anymore.
+    else if(result == "cancel") while(calcEnteringNumber == calc.get_state()) calc.key('B');  // to cancel input, we backspace until we can't anymore.
     // normal 0
     else if(result == "help")   help_screen();
     else if(result == "menu")   menu_menu();
@@ -93,8 +93,8 @@ bool process_input() {
     else if(result == "(")      calc.key(OPEN_PAREN_OPERATOR);
     else if(result == ")")      calc.key(CLOSE_PAREN_OPERATOR);
     // normal 2
-    else if(result == "pi")     calc.set_display("3.14159265");
-    else if(result == "e")      calc.set_display("2.71828182");
+    else if(result == "pi")     calc.set_value("3.14159265");
+    else if(result == "e")      calc.set_value("2.71828182");
     // normal 3
     else if(result == "push")   { calc.commit();  calc.push(); }
     else if(result == "pop")    { calc.commit();  calc.pop(); }

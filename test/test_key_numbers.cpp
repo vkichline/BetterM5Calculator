@@ -8,7 +8,7 @@ void enter_number_and_verify(const char* entry) {
     TEST_ASSERT_TRUE(kcalc.key(entry[i]));  // enter whatever was passed in
   }
   TEST_ASSERT_TRUE(kcalc.key('='));         // enter into memory
-  TEST_ASSERT_EQUAL_STRING(entry, kcalc.get_display().c_str());
+  TEST_ASSERT_EQUAL_STRING(entry, k_display());
   TEST_ASSERT_TRUE(kcalc.key('A'));         // clear memory
 }
 
@@ -21,7 +21,7 @@ void enter_negative_number_and_verify(const char* entry) {
   }
   TEST_ASSERT_TRUE(kcalc.key('='));         // enter into memory
   TEST_ASSERT_TRUE(kcalc.key('`'));         // change sign
-  TEST_ASSERT_EQUAL_STRING(entry, kcalc.get_display().c_str());
+  TEST_ASSERT_EQUAL_STRING(entry, k_display());
   TEST_ASSERT_TRUE(kcalc.key('A'));         // clear memory
 }
 

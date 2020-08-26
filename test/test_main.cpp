@@ -5,6 +5,7 @@ MemoryCalculator<double,  NUM_MEMORIES>  dpcalc;
 MemoryCalculator<int32_t, NUM_MEMORIES>  icalc;
 TextCalculator                           tcalc;
 KeyCalculator                            kcalc;
+String                                   util_str;
 
 
 void setUp(void) {}   // set stuff up here
@@ -17,8 +18,14 @@ void setup() {
   UNITY_BEGIN();  // start unit testing
 }
 
+const char* k_display() {
+  util_str = kcalc.get_display(dispValue);
+  return util_str.c_str();
+}
+
 
 void loop() {
+
   run_i_push_value_tests();
   run_i_addition_tests();
   run_i_mixed_math_tests();

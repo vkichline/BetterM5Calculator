@@ -12,7 +12,11 @@ extern TextCalculator                           tcalc;
 extern KeyCalculator                            kcalc;
 
 
+// utilities defined in test_main.cpp:
+const char* k_display();
 
+
+// tests defined in test groups
 void run_i_push_value_tests();      // Tests from test_i_push_value.cpp
 void run_i_addition_tests();        // Tests from test_i_addition.cpp
 void run_i_mixed_math_tests();      // Tests from test_i_mixed_math.cpp
