@@ -17,12 +17,12 @@
 // KeyCalculator states, changed by key inputs, accessible by get_state()
 //
 enum CalcState {
-  calcReadyForAny,      // RA - Ready for any input; initial state
-  calcReadyForNumber,   // RN - The calculator is waiting for a digit, a period, +/- or an open paren
-  calcReadyForOperator, // RO - The calculator is waiting for +-*/%=sr
-  calcEnteringNumber,   // EN - The number in the display is being entered. Expect digit, period, +/-
-  calcEnteringMemory,   // EM - A memory command is being entered. Expect M=A+-*/%
-  calcError             // X  - The calculator is in Global Error mode. Only AC accepted.
+  calcReadyForAny,      // A - Ready for any input; initial state
+  calcReadyForNumber,   // N - The calculator is waiting for a digit, a period, +/- or an open paren
+  calcReadyForOperator, // O - The calculator is waiting for +-*/%=sr
+  calcEnteringNumber,   // > - The number in the display is being entered. Expect digit, period, +/-
+  calcEnteringMemory,   // M - A memory command is being entered. Expect M=A+-*/%
+  calcError             // X - The calculator is in Global Error mode. Only AC accepted.
 };
 
 // get_display() selectors

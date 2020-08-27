@@ -70,7 +70,8 @@ bool KeyCalculator::key(uint8_t code) {
   // the second operator. If another operator comes in here, it should replace the operator on top of
   // the operator_stack. For example:
   // User inputs 15 + *.  Interpret this to mean: "I meant *, not +".
-  if((calcReadyForNumber == _state) && is_operator(code) && (0 != _calc.operator_stack.size())) {
+  // Don't do this for open parens, that we might want several of in a row.
+  if((calcReadyForNumber == _state) && is_operator(code) && (OPEN_PAREN_OPERATOR != code) && (0 != _calc.operator_stack.size())) {
     _calc.operator_stack.back() = code;
     return true;  // Do not change the state
   }
@@ -369,11 +370,11 @@ String KeyCalculator::_build_status_display() {
 
   // At least during development, show the KeyCalculator state first:
   switch(_state) {
-    case calcReadyForAny      : str += "RA "; break;
-    case calcReadyForNumber   : str += "RN "; break;
-    case calcReadyForOperator : str += "RO "; break;
-    case calcEnteringNumber   : str += "EN "; break;
-    case calcEnteringMemory   : str += "EM "; break;
+    case calcReadyForAny      : str += "A "; break;
+    case calcReadyForNumber   : str += "N "; break;
+    case calcReadyForOperator : str += "O "; break;
+    case calcEnteringNumber   : str += "> "; break;
+    case calcEnteringMemory   : str += "M "; break;
     case calcError            : str += "X "; break;
   }
 

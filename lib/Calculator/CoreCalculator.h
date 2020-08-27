@@ -246,8 +246,8 @@ class PercentOperator : public Operator<T> {
     }
     bool    enough_values() { return (1 <= Operator<T>::_host->value_stack.size()); }
     Op_Err  operate() {
-      // If only the % operator is on the Operator_stack
-      if(0 == Operator<T>::_host->operator_stack.size()) {
+      // If the perator stack is empty, or has an open paren on top...
+      if(0 == Operator<T>::_host->operator_stack.size() || OPEN_PAREN_OPERATOR == Operator<T>::_host->operator_stack.back()) {
         Operator<T>::_host->push_operator('/');
         Operator<T>::_host->push_value(T(100));
         Operator<T>::_host->evaluate_one();
