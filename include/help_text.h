@@ -1,11 +1,11 @@
 // For the help textBox
 
 #define HELP_TEXT "Welcome to the M5 Calculator\n\n" \
-"This calculator works like you would expect, with two notable additions; the 3 M5 buttons and Memory.\n\n" \
+"This calculator works like you would expect a calculator to, with two notable additions; the 3 M5 buttons and Memory.\n\n" \
 "The buttons rotate their captions as you press Button C (right arrow), eventually starting over again.\nWhen entering " \
 "a number, a special set of buttons is displayed, permitting you to backspace or cancel number input. If you want to " \
 "get back to the ordinary buttons, just press Button C (right arrow).\nWhen inputting memory, a special set of buttons is " \
-"shown with shortcuts for get, set, and clear.\nThe buttons will become easy to navigate once you use them a bit.\n\n" \
+"shown with shortcuts for get, set, and clear.\n\n" \
 "Memory is very powerful on the M5 Calculator. You get one 'simple' memory, 100 numbered memories (0-99), and an " \
 "unlimited push-down memory stack. Once you press the keyboard's 'M' key, you are in Memory Mode, and the next key is " \
 "interpreted specially:\n" \
