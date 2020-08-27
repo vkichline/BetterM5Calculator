@@ -41,7 +41,7 @@ class TextCalculator {
     bool                recall_memory(uint8_t index);       // Replace value() with M[index]
     void                pop();                              // Pop a value off the memory stack and replace value() with it
     void                clear_memory();                     // Clear only M
-    void                clear_all_memory();                 // Clear M, all M[], and the memory stack
+    void                clear_all();                        // Clear M, all M[], and the memory stack, plus op and value stack
 
     bool                is_operator(Op_ID id);              // Return true if id is in _ops
     bool                is_mem_operator(Op_ID id);          // Return true if id is in _mem_ops

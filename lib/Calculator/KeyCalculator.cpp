@@ -39,6 +39,7 @@ bool KeyCalculator::key(uint8_t code) {
   if(calcError == _state) {
     if(CLEAR_OPERATOR == code) {
       _calc.clear_error_state();
+      _calc.push_value(0.0);
       _change_state(calcReadyForAny);
       return true;
     }
@@ -98,7 +99,7 @@ bool KeyCalculator::key(uint8_t code) {
   commit(); // If input is in progress, commit pushes it to the stack and sets state to calcReadyForOperator. Else, noop.
 
   // See if its a simple operator
-  if(calcReadyForAny == _state || calcReadyForOperator == _state) {
+  if((calcReadyForAny == _state && 0 < _calc.value_stack.size()) || calcReadyForOperator == _state) {
     if(is_operator(code)) {
       // Do not allow a CLOSE_PAREN_OPERATOR on the stack unless there's a matching OPEN_PAREN_OPERATOR
       if(CLOSE_PAREN_OPERATOR == code && 0 == _count_open_parens()) {
@@ -128,8 +129,9 @@ bool KeyCalculator::key(uint8_t code) {
     case CHANGE_SIGN_OPERATOR:  return _handle_change_sign();
     case CLEAR_OPERATOR:        return _handle_clear(false);
     case MEMORY_OPERATOR:       return _handle_memory_command(code);
-    default:                    return false;
+    default:                    break;
   }
+  if(DEBUG_KEYCALC_STATE) Serial.printf("Dropping key %c\n", code);
   return false;
 }
 
@@ -254,12 +256,15 @@ bool KeyCalculator::_handle_clear(bool all_clear) {
   if(!_clear_press_count) _clear_press_count = 255; // Just an 8 bit #, don't let it roll over
 
   if(all_clear) {
-    clear_all_memory();
+    clear_all();
     _change_state(calcReadyForAny);
     return true;
   }
   else {
-    _change_state(calcReadyForAny);
+    // If the op stack is empty, or is open paren, we can enter anything.
+    // Otherwise, we need a number
+    bool any = (0 == _calc.operator_stack.size()) || (OPEN_PAREN_OPERATOR == _calc.operator_stack.back());
+    _change_state(any ? calcReadyForAny : calcReadyForNumber);
     return (NO_ERROR == _calc.clear());
   }
   return false;

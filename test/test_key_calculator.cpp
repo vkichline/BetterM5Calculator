@@ -37,7 +37,9 @@ void test_key_memory() {
   TEST_ASSERT_TRUE(kcalc.key('M'));
   TEST_ASSERT_TRUE(kcalc.key('M'));
   TEST_ASSERT_EQUAL_STRING("111", k_display());
-  kcalc.recall_memory(3);
+  TEST_ASSERT_TRUE(kcalc.key('M'));
+  TEST_ASSERT_TRUE(kcalc.key('3'));
+  TEST_ASSERT_TRUE(kcalc.key('M'));   // recall memory 3
   TEST_ASSERT_EQUAL_STRING("111", k_display());
   kcalc.pop();
   TEST_ASSERT_EQUAL_STRING("111", k_display());

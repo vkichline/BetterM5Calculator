@@ -178,10 +178,13 @@ void TextCalculator::clear_memory() {
 }
 
 
-// Clear M, all M[], and the memory stack
+// Clear M, all M[], and the memory stack, plus op and value stack
 //
-void TextCalculator::clear_all_memory() {
+void TextCalculator::clear_all() {
   _calc.clear_all_memory();
+  _calc.operator_stack.clear();
+  _calc.value_stack.clear();
+  _calc.value_stack.push_back(0.0);
 }
 
 
