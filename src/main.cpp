@@ -31,7 +31,9 @@ bool          cancel_bs       = false;        // If true, override displaying th
 bool          stacks_visible  = true;         // Can be turned off in settings menu
 
 
-// Read a key from the calculator keyboard.
+////////////////////////////////////////////////////////////////////////////////
+//
+//  Read a key from the calculator keyboard.
 //  Return true and change ref to input char if key is available, otherwise return false.
 //
 bool read_key(char& input) {
@@ -49,6 +51,8 @@ bool read_key(char& input) {
 }
 
 
+////////////////////////////////////////////////////////////////////////////////
+//
 //  Read a key from the calculator keyboard, or a button from the M5Stack.
 //
 bool process_input() {
@@ -113,8 +117,10 @@ bool process_input() {
 }
 
 
-// See if the calculator keyboard is attached. Show a message if it is not.
-// Assumes Wire.begin() has been called.
+////////////////////////////////////////////////////////////////////////////////
+//
+//  See if the calculator keyboard is attached. Show a message if it is not.
+//  Assumes Wire.begin() has been called.
 //
 bool test_for_keyboard() {
   Wire.beginTransmission(KEYBOARD_I2C_ADDR);
@@ -124,7 +130,9 @@ bool test_for_keyboard() {
 }
 
 
-// Arduino setup function, called once at beginning of program
+////////////////////////////////////////////////////////////////////////////////
+//
+//  Arduino setup function, called once at beginning of program
 //
 void setup() {
   ez.begin();
@@ -137,6 +145,8 @@ void setup() {
 }
 
 
+////////////////////////////////////////////////////////////////////////////////
+//
 // Arduino loop function, called repeatedly
 //
 void loop() {

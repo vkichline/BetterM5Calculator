@@ -6,7 +6,9 @@
 // This file displays all the menus and text boxes associated with the UI, using M5ez UI.
 
 
-// Display a menu of ten indexed memory values, starting at index
+////////////////////////////////////////////////////////////////////////////////
+//
+//  Display a menu of ten indexed memory values, starting at index
 //
 void show_indexed_memory_group(uint8_t index) {
   ezMenu menu("Indexed Memory");
@@ -20,10 +22,12 @@ void show_indexed_memory_group(uint8_t index) {
 }
 
 
-// Display a menu for selecting a sub-group of indexed memories, broken up
-// by groups of ten. By each group, display how many memories in that group
-// are non-zero. Display the sub-group if selected.
-// Changes no values; display only.
+////////////////////////////////////////////////////////////////////////////////
+//
+//  Display a menu for selecting a sub-group of indexed memories, broken up
+//  by groups of ten. By each group, display how many memories in that group
+//  are non-zero. Display the sub-group if selected.
+//  Changes no values; display only.
 //
 void show_indexed_memory() {
   int index = 0;
@@ -45,7 +49,9 @@ void show_indexed_memory() {
 }
 
 
-// If the memory stack is empty, show a notice. If not, show the entire stack.
+////////////////////////////////////////////////////////////////////////////////
+//
+//  If the memory stack is empty, show a notice. If not, show the entire stack.
 //
 void show_memory_stack() {
   if(0 == calc._calc.get_memory_depth()) {
@@ -63,7 +69,9 @@ void show_memory_stack() {
 }
 
 
-// Perform a few simple operations on the memory stack
+////////////////////////////////////////////////////////////////////////////////
+//
+//  Perform a few simple operations on the memory stack
 //
 void memory_stack_operations() {
   ezMenu menu("Memory Stack Operations");
@@ -99,7 +107,9 @@ void memory_stack_operations() {
 }
 
 
-// Display a menu of miscellaneous functions
+////////////////////////////////////////////////////////////////////////////////
+//
+//  Display a menu of miscellaneous functions
 //
 void menu_menu() {
   ezMenu menu("Calculator Settings");
@@ -135,7 +145,9 @@ void menu_menu() {
 }
 
 
-// Respond to the "?" button with some instructions
+////////////////////////////////////////////////////////////////////////////////
+//
+//  Respond to the "?" button with some instructions
 //
 void help_screen() {
   ez.textBox("Info", HELP_TEXT, true);

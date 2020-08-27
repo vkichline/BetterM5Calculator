@@ -54,12 +54,12 @@ class KeyCalculator : public TextCalculator {
     uint8_t     _clear_press_count                      =  0;     // The number of times in a row the AC key has been pressed.
     CalcState   _state;                                           // Current state of the KeyCalculator
 
-    void      _change_state(CalcState state);                   // Always call this function to change _state; don't do it directly
-    bool      _handle_clear(bool all_clear = false);            // Handle the AC key, with 1st & 2nd press actions
-    bool      _handle_change_sign();                            // Handle +/- key, which is an input action, not a command
-    bool      _handle_memory_command(uint8_t code);             // Handle the rather complicated memory commands
-    String    _build_status_display();                          // Build the (complicated) dispStatus string
-    bool      _build_number(uint8_t code);                      // Build the display value from keystrokes
-    String    _convert_num_buffer(bool clear);                  // Convert the buffer to a String and clear it
-    uint8_t   _count_open_parens();                             // Return the number of OPEN_PAREN operators on the operator_stack
+    void      _change_state(CalcState state);                     // Always call this function to change _state; don't do it directly
+    bool      _handle_clear(bool all_clear = false);              // Handle the AC key, with 1st & 2nd press actions
+    bool      _handle_change_sign();                              // Handle +/- key, which is an input action, not a command
+    bool      _handle_memory_command(uint8_t code);               // Handle the rather complicated memory commands
+    String    _build_status_display();                            // Build the (complicated) dispStatus string
+    bool      _build_number(uint8_t code);                        // Build the display value from keystrokes
+    String    _convert_num_buffer(bool clear);                    // Convert the buffer to a String and clear it
+    uint8_t   _count_open_parens();                               // Return the number of OPEN_PAREN operators on the operator_stack
 };

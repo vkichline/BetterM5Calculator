@@ -7,7 +7,9 @@
 // Only display_all() is of interest to the main program.
 
 
-// Display the calculator status in small text above the value.
+////////////////////////////////////////////////////////////////////////////////
+//
+//  Display the calculator status in small text above the value.
 //
 void display_status() {
   M5.Lcd.setTextFont(STAT_FONT);
@@ -18,9 +20,11 @@ void display_status() {
 }
 
 
-// Main numeric display; show the number being entered or the current value.
-// Since the number can be wider than the display, and text wrapping always wraps to zero,
-// and a left margin is desired, a sprite is used to render the characters to the screen.
+////////////////////////////////////////////////////////////////////////////////
+//
+//  Main numeric display; show the number being entered or the current value.
+//  Since the number can be wider than the display, and text wrapping always wraps to zero,
+//  and a left margin is desired, a sprite is used to render the characters to the screen.
 //
 void display_value() {
   bool is_err = calc.get_error_state();
@@ -39,10 +43,12 @@ void display_value() {
 }
 
 
-// Dual use area: only rendered when required.
-// If the user has pressed the M key, show the memory location we're building up (M, M[n], M[nn])
-// along with the current value at that location.
-// If we're in global error mode, show the error instead.
+////////////////////////////////////////////////////////////////////////////////
+//
+//  Dual use area: only rendered when required.
+//  If the user has pressed the M key, show the memory location we're building up (M, M[n], M[nn])
+//  along with the current value at that location.
+//  If we're in global error mode, show the error instead.
 //
 void display_memory_storage() {
   String disp_value;
@@ -72,9 +78,11 @@ void display_memory_storage() {
 }
 
 
-// Display the operator stack at the lower left, and value stack at the lower right.
-// This feature is non-standard and can be turned off, but it makes it easy to spot errors
-// that would otherwise be difficult to track down.
+////////////////////////////////////////////////////////////////////////////////
+//
+//  Display the operator stack at the lower left, and value stack at the lower right.
+//  This feature is non-standard and can be turned off, but it makes it easy to spot errors
+//  that would otherwise be difficult to track down.
 //
 void display_stacks() {
   bool   is_err    = calc.get_error_state();
@@ -93,7 +101,9 @@ void display_stacks() {
 }
 
 
-// Set the buttons at the bottom of the screen appropriately, depending on the mode
+////////////////////////////////////////////////////////////////////////////////
+//
+//  Set the buttons at the bottom of the screen appropriately, depending on the mode
 //
 void set_buttons() {
   if(calcEnteringMemory == calc.get_state()) {
@@ -108,7 +118,9 @@ void set_buttons() {
 }
 
 
-// Consolidated function to call repeatedly to render the calculator screen.
+////////////////////////////////////////////////////////////////////////////////
+//
+//  Consolidated function to call repeatedly to render the calculator screen.
 //
 void display_all() {
   display_value();

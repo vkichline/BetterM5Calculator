@@ -5,7 +5,6 @@
 
 
 TextCalculator::TextCalculator(uint8_t precision) {
-  // set_mode(mode);
   _precision  = precision;
   _ops        = { ADDITION_OPERATOR, SUBTRACTION_OPERATOR, MULTIPLICATION_OPERATOR, DIVISION_OPERATOR,
                   OPEN_PAREN_OPERATOR, CLOSE_PAREN_OPERATOR, EVALUATE_OPERATOR, PERCENT_OPERATOR,

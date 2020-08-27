@@ -12,7 +12,7 @@
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Constructor
+//  Constructor
 //
 KeyCalculator::KeyCalculator() : TextCalculator(CALC_NUMERIC_PRECISION) {
   _state              = calcReadyForAny;
@@ -24,9 +24,9 @@ KeyCalculator::KeyCalculator() : TextCalculator(CALC_NUMERIC_PRECISION) {
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-// This is the workhorse routine for handling incoming keys from the keyboard.
-// Keys build values, memory specs, or represent commands.
-// _state controls how the key is handled, and is modified by key inputs.
+//  This is the workhorse routine for handling incoming keys from the keyboard.
+//  Keys build values, memory specs, or represent commands.
+//  _state controls how the key is handled, and is modified by key inputs.
 //
 bool KeyCalculator::key(uint8_t code) {
   if(DEBUG_KEYCALC_STATE) Serial.printf("Entering key() in %s state.\n", _state_to_name[_state]);
@@ -138,9 +138,9 @@ bool KeyCalculator::key(uint8_t code) {
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-// If there is a number being input in the _num_buffer, push it to the stack
-// and clear the _num_buffer.
-// Return true if a value was pushed, false if nothing happened.
+//  If there is a number being input in the _num_buffer, push it to the stack
+//  and clear the _num_buffer.
+//  Return true if a value was pushed, false if nothing happened.
 //
 bool KeyCalculator::commit() {
   if(_num_buffer_index) {
@@ -156,7 +156,7 @@ bool KeyCalculator::commit() {
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Push val onto the value stack.
+//  Push val onto the value stack.
 //
 void KeyCalculator::set_value(String val) {
   _num_buffer_index = 0;                // so get_display goes to value() and not to buffer
@@ -169,7 +169,7 @@ void KeyCalculator::set_value(String val) {
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Return the KeyCalculator's current state
+//  Return the KeyCalculator's current state
 //
 CalcState KeyCalculator::get_state() {
   return _state;
@@ -178,7 +178,7 @@ CalcState KeyCalculator::get_state() {
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Get some textual information for display, identified by id
+//  Get some textual information for display, identified by id
 //
 String KeyCalculator::get_display(CalcDisplay id) {
   String str;
@@ -238,8 +238,8 @@ String KeyCalculator::get_display(CalcDisplay id) {
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Always call this function to change _state; don't do it directly.
-// This permits logging, etc.
+//  Always call this function to change _state; don't do it directly.
+//  This permits logging, etc.
 //
 void KeyCalculator::_change_state(CalcState state) {
   if(DEBUG_KEYCALC_STATE) Serial.printf("Changing state from %s to %s\n", _state_to_name[_state], _state_to_name[state]);
@@ -249,7 +249,7 @@ void KeyCalculator::_change_state(CalcState state) {
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Handle the AC key, with 1st & 2nd press actions
+//  Handle the AC key, with 1st & 2nd press actions
 //
 bool KeyCalculator::_handle_clear(bool all_clear) {
   _clear_press_count++;
@@ -273,7 +273,7 @@ bool KeyCalculator::_handle_clear(bool all_clear) {
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Handle +/- key (Change Sign), which is an input action, not a command.
+//  Handle +/- key (Change Sign), which is an input action, not a command.
 //
 bool KeyCalculator::_handle_change_sign() {
   _change_state(calcReadyForNumber);
@@ -290,20 +290,20 @@ bool KeyCalculator::_handle_change_sign() {
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Memory commands are complicated. There is a simple memory, a memory array, and a memory stack.
-// The memory array size is established with the MemoryCalculator template parameter M and can be
-// ascertained with _calc.get_mem_array_size().
-// Once M is pressed, it can be followed with another M for recall, a memory operator (+-*/%=)
-// to store the value in the simple memory, or (0-9) to build a memory address for the operator:
-// MM   Recall simple memory      (M -> Value)
-// M=   Store simple memory       (Value -> M)
-// MA   Clear simple memory       (0 -> M)
-// M+   Simple memory opperation  (M + Value -> M)
-// M0=  Store into M[0]           (Value -> M[0])
-// M9=  Store into M[9]           (Value -> M[9])
-// M.   Cancel out of memory mode (N/C)
-// Note that there may be 10 or thousands of memories.
-// The previous state is captured on entry and restored on exit from calcEnteringMemory
+//  Memory commands are complicated. There is a simple memory, a memory array, and a memory stack.
+//  The memory array size is established with the MemoryCalculator template parameter M and can be
+//  ascertained with _calc.get_mem_array_size().
+//  Once M is pressed, it can be followed with another M for recall, a memory operator (+-*/%=)
+//  to store the value in the simple memory, or (0-9) to build a memory address for the operator:
+//  MM   Recall simple memory      (M -> Value)
+//  M=   Store simple memory       (Value -> M)
+//  MA   Clear simple memory       (0 -> M)
+//  M+   Simple memory opperation  (M + Value -> M)
+//  M0=  Store into M[0]           (Value -> M[0])
+//  M9=  Store into M[9]           (Value -> M[9])
+//  M.   Cancel out of memory mode (N/C)
+//  Note that there may be 10 or thousands of memories.
+//  The previous state is captured on entry and restored on exit from calcEnteringMemory
 //
 bool KeyCalculator::_handle_memory_command(uint8_t code) {
   if(DEBUG_KEYCALC_MEMORY) Serial.printf("_handle_memory_command('%c')\n", code);
@@ -389,8 +389,8 @@ bool KeyCalculator::_handle_memory_command(uint8_t code) {
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Construct a string for a calculator to display showing status.
-// It may be entirely empty, or as complex as:  (( M[1,2,4,6,7,18.37,81,...]  S(5)  M=3.14159265
+//  Construct a string for a calculator to display showing status.
+//  It may be entirely empty, or as complex as:  (( M[1,2,4,6,7,18.37,81,...]  S(5)  M=3.14159265
 //
 String KeyCalculator::_build_status_display() {
   String  str         = "";
@@ -458,7 +458,7 @@ String KeyCalculator::_build_status_display() {
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Build the display value from keystrokes
+//  Build the display value from keystrokes
 //
 bool KeyCalculator::_build_number(uint8_t code) {
   _change_state(calcEnteringNumber);
@@ -487,7 +487,7 @@ bool KeyCalculator::_build_number(uint8_t code) {
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Convert the buffer to a String and optionally clear it
+//  Convert the buffer to a String and optionally clear it
 //
 String KeyCalculator::_convert_num_buffer(bool clear) {
   String str(_num_buffer);
@@ -501,8 +501,8 @@ String KeyCalculator::_convert_num_buffer(bool clear) {
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Return the number of OPEN_PAREN operators on the operator_stack,
-// minus the number of close parens.
+//  Return the number of OPEN_PAREN operators on the operator_stack,
+//  minus the number of close parens.
 //
 uint8_t KeyCalculator::_count_open_parens() {
   uint8_t open_count  = 0;
