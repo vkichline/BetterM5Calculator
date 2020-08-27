@@ -17,6 +17,14 @@ void test_number_format_bug_2() {
 }
 
 
+// The fix above for the 9.9 bug made 0.00000001 return and empty string
+//
+void test_number_format_bug_3() {
+  TEST_ASSERT_TRUE(tcalc.enter("0.00000001"));
+  TEST_ASSERT_EQUAL_STRING("0", tcalc.value().c_str());
+}
+
+
 // Change the operator from + to * (intentionally) by typing:
 // 10 + * 2 =
 // Expect 20.
@@ -102,12 +110,26 @@ void test_stacked_right_parens() {
 }
 
 
+// Square was implemented incorrectly, broken precedence
+//
+void test_square_precedence() {
+  TEST_ASSERT_TRUE(kcalc.key('5'));
+  TEST_ASSERT_TRUE(kcalc.key('*'));
+  TEST_ASSERT_TRUE(kcalc.key('2'));
+  TEST_ASSERT_TRUE(kcalc.key(SQUARE_OPERATOR));
+  TEST_ASSERT_TRUE(kcalc.key('='));
+  TEST_ASSERT_EQUAL_STRING("20", k_display());
+}
+
+
 void run_regression_tests() {
   RUN_TEST(test_number_format_bug_1);
   RUN_TEST(test_number_format_bug_2);
+  RUN_TEST(test_number_format_bug_3);
   RUN_TEST(test_change_operator);
   RUN_TEST(test_add_percent_op_stack);
   RUN_TEST(test_immediate_operators);
   RUN_TEST(test_stacked_left_parens);
   RUN_TEST(test_stacked_right_parens);
+  RUN_TEST(test_square_precedence);
 }

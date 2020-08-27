@@ -23,8 +23,8 @@
 #define ERROR_NO_MATCHING_PAREN   -5                            // Evaluated more close parens than open parens
 #define ERROR_OVERFLOW            -6
 
-#define DEBUG_OPERATORS            0                            // 0 is quiet, 1 spews info for debugging operators
-#define DEBUG_EVALUATION           0                            // 0 is quiet, 1 spews info for debugging evaluations
+#define DEBUG_OPERATORS           0                             // 0 is quiet, 1 spews info for debugging operators
+#define DEBUG_EVALUATION          0                             // 0 is quiet, 1 spews info for debugging evaluations
 
 #define ADDITION_OPERATOR         (uint8_t('+'))
 #define SUBTRACTION_OPERATOR      (uint8_t('-'))
@@ -69,6 +69,7 @@ class CoreCalculator {
     void                          _initialize_operators();      // Fill the _operators map with instances of available Operators
     std::map<Op_ID, Operator<T>*> _operators;                   // A map of all the operators (extensible!)
     Op_Err                        _error_state;                 // Global error state.
+public:
     void                          _spew_stacks();               // Writes operator_stack and value_stack to Serial port for debugging
 };
 
@@ -278,10 +279,10 @@ class SquareOperator : public Operator<T> {
     }
     bool    enough_values() { return (1 <= Operator<T>::_host->value_stack.size()); }
     Op_Err  operate() {
-      if(!enough_values())  return ERROR_TOO_FEW_OPERANDS;
-      Operator<T>::_host->push_operator('*');
-      Operator<T>::_host->push_value(Operator<T>::_host->get_value());
-      Operator<T>::_host->evaluate_one();
+      if(!enough_values()) return ERROR_TOO_FEW_OPERANDS;
+      T temp = Operator<T>::_host->pop_value();
+      temp = temp * temp;
+      Operator<T>::_host->push_value(temp);
       return NO_ERROR;
     }
 };
@@ -298,9 +299,9 @@ class SquareRootOperator : public Operator<T> {
     bool    enough_values() { return (1 <= Operator<T>::_host->value_stack.size()); }
     Op_Err  operate() {
       if(!enough_values())  return ERROR_TOO_FEW_OPERANDS;
-      T op = Operator<T>::_host->pop_value();
-      op = T(sqrt(double(op)));
-      Operator<T>::_host->push_value(op);
+      T temp = Operator<T>::_host->pop_value();
+      temp = T(sqrt(double(temp)));
+      Operator<T>::_host->push_value(temp);
       return NO_ERROR;
     }
 };
@@ -442,7 +443,8 @@ template <typename T> Op_Err CoreCalculator<T>::evaluate_one() {
       return ERROR_TOO_FEW_OPERANDS;
     }
     Op_Err result = op->operate();
-    if(DEBUG_EVALUATION) Serial.printf("Result of %c operation: %d\n", id, result);
+    if(DEBUG_EVALUATION) Serial.printf("Result of %c operation: %d.  ", id, result);
+    if(DEBUG_EVALUATION) _spew_stacks();
     if(result) set_error_state(result);
     return result;
   }

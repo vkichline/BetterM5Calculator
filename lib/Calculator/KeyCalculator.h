@@ -42,6 +42,7 @@ class KeyCalculator : public TextCalculator {
     bool        key(uint8_t code);                                // Process a key from the keyboard
     bool        commit();                                         // If there is a value in the buffer, commit it to the stack
     void        set_value(String val);                            // Set the display value to val. Used by aggregator to input value and set state.
+    void        cancel_input();                                   // When inputing a number or memory, dump buffer and return to calcReadyForAny state
     CalcState   get_state();                                      // Get the current state of the KeyCalculator
     String      get_display(CalcDisplay id);                      // Return the specified string representation
 

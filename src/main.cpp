@@ -89,7 +89,7 @@ bool process_input() {
     else if(result == "AC")     calc.key('A');  // In memory mode: clear
     // number entry mode
     else if(result == "BS")     calc.key('B');  // KeyCalculator command for backspace
-    else if(result == "cancel") while(calcEnteringNumber == calc.get_state()) calc.key('B');  // to cancel input, we backspace until we can't anymore.
+    else if(result == "cancel") calc.cancel_input();
     // normal 0
     else if(result == "help")   help_screen();
     else if(result == "menu")   menu_menu();

@@ -260,12 +260,12 @@ String TextCalculator::double_to_string(double val) {
   // Numbers like 9.9 produce the string 09.9. Also -09.9.
   // reset p to beginning of buffer
   p = buffer;
-  if('-' == buffer[0] && '0' == buffer[1] && '.' != buffer[2]) {
+  if(3 <= strlen(buffer) && '-' == buffer[0] && '0' == buffer[1] && '.' != buffer[2]) {
     // We have -0N.NN Eliminate the second character of the buffer.
     p++;      // Advance the pointer from - to 0
     *p = '-'; // Replace the 0 with a -
   }
-  else if('0' == buffer[0] && '.' != buffer[1]) {
+  else if(2 <= strlen(buffer) && '0' == buffer[0] && '.' != buffer[1]) {
     p++;      // We have 0N or 0NN.NNN Eliminate the first character of the buffer.
   }
   return String(p);

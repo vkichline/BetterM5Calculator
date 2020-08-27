@@ -109,14 +109,14 @@ bool KeyCalculator::key(uint8_t code) {
       if(DEBUG_KEYCALC_STACK) Serial.printf("Pushing %c onto the operator stack in key()\n", code);
       bool result = enter(code);
       if(result) {
-        CalcState next                        = calcReadyForNumber;     // Normally, after entering an operator
+        CalcState                        next = calcReadyForNumber;     // Normally, after entering an operator
         if(EVALUATE_OPERATOR    == code) next = calcReadyForAny;        // Operation completed, ready for anything
         if(CLOSE_PAREN_OPERATOR == code) next = calcReadyForOperator;   // Operation completed, ready for anything
         // If the operator was %, square or SquareRoot, evaluate it immediately (like most calculators do) and set state to any
         // (Basically, unary operators are evaluated immediately)
         if(PERCENT_OPERATOR == code || SQUARE_OPERATOR == code || SQUARE_ROOT_OPERATOR == code) {
           result = (NO_ERROR == _calc.evaluate_one());
-          next = calcReadyForAny;
+          next   = calcReadyForAny;
         }
         _change_state(next);
       }
@@ -163,7 +163,25 @@ void KeyCalculator::set_value(String val) {
   _num_buffer[0]    = 0;                // so it's not scanned even though index is zero
   if(DEBUG_KEYCALC_STACK) Serial.printf("Pushing %s onto the value stack in set_value()\n", val.c_str());
   enter(val);                           // push the value onto the stack
-  _change_state(calcReadyForOperator);  // just entered a value, ready for an operator
+  _change_state(calcReadyForAny);       // ready for any after a push
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+//
+//  When inputing a number or memory, dump buffer and set state
+//
+void KeyCalculator::cancel_input() {
+  if(calcEnteringNumber == _state) {
+    _num_buffer[0]    = '\0';
+    _num_buffer_index = 0;
+    _change_state((0 < _calc.operator_stack.size()) ? calcReadyForNumber : calcReadyForAny);
+  }
+  else if(calcEnteringMemory == _state) {
+    _mem_buffer[0]    = '\0';
+    _mem_buffer_index = 0;
+    _change_state(calcReadyForAny);
+  }
 }
 
 

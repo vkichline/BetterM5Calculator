@@ -74,7 +74,7 @@ void show_memory_stack() {
 //  Perform a few simple operations on the memory stack
 //
 void memory_stack_operations() {
-  ezMenu menu("Memory Stack Operations");
+  ezMenu menu("Memory Stack Ops");
   menu.txtSmall();
   menu.buttons("up # back # select ## down #");
   menu.addItem("Clear");
@@ -150,5 +150,5 @@ void menu_menu() {
 //  Respond to the "?" button with some instructions
 //
 void help_screen() {
-  ez.textBox("Info", HELP_TEXT, true);
+  ez.textBox("Calculator Help", HELP_TEXT, true);
 }
