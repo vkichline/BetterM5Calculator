@@ -8,17 +8,17 @@
 "shown with shortcuts for get, set, and clear.\nThe buttons will become easy to navigate once you use them a bit.\n\n" \
 "Memory is very powerful on the M5 Calculator. You get one 'simple' memory, 100 numbered memories (0-99), and an " \
 "unlimited push-down memory stack. Once you press the keyboard's 'M' key, you are in Memory Mode, and the next key is " \
-"interprested specially:\n" \
-"M     Recalls simple memory\n" \
-"=      Stores simple memory\n" \
-"AC   Clears simple memory\n" \
-"+      Adds to simple memory\n" \
-"-      Subtracts from simple memory\n" \
-"*      Multiplies simple memory\n" \
-"%    Takes percent of simple memory\n" \
-".      Cancels memory mode\n" \
-"3M   Recalls M[3]\n" \
-"99+ Adds to M[99]\n\n" \
+"interpreted specially:\n" \
+"MM     Recalls simple memory\n" \
+"M=      Stores simple memory\n" \
+"MA   Clears simple memory\n" \
+"M+      Adds to simple memory\n" \
+"M-      Subtracts from simple memory\n" \
+"M*      Multiplies simple memory\n" \
+"M%    Percentage of simple memory\n" \
+"M.      Cancels memory mode\n" \
+"M3M   Recalls M[3]\n" \
+"M99+ Adds to M[99]\n\n" \
 "The AC key clears the current value. Pressing AC twice in a row clears all memory as well.\n\n" \
 "As with many calculators, you must use the +/- button to enter a negative number. Press +/- anytime that you are " \
 "in number entry mode, and the leading '-' sign will appear or disappear.\n\n" \
