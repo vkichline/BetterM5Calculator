@@ -70,8 +70,9 @@ bool KeyCalculator::key(uint8_t code) {
   // the second operator. If another operator comes in here, it should replace the operator on top of
   // the operator_stack. For example:
   // User inputs 15 + *.  Interpret this to mean: "I meant *, not +".
-  // Don't do this for open parens, that we might want several of in a row.
-  if((calcReadyForNumber == _state) && is_operator(code) && (OPEN_PAREN_OPERATOR != code) && (0 != _calc.operator_stack.size())) {
+  // Don't do this for parens, you may want multiple open parens and close parens get weird.
+  if((calcReadyForNumber == _state) && is_operator(code) && (OPEN_PAREN_OPERATOR != code) &&
+     (CLOSE_PAREN_OPERATOR != code) && (0 != _calc.operator_stack.size())) {
     _calc.operator_stack.back() = code;
     return true;  // Do not change the state
   }
@@ -464,12 +465,17 @@ String KeyCalculator::_convert_num_buffer(bool clear) {
 }
 
 
-// Return the number of OPEN_PAREN operators on the operator_stack
+// Return the number of OPEN_PAREN operators on the operator_stack,
+// minus the number of close parens.
 //
 uint8_t KeyCalculator::_count_open_parens() {
-  uint8_t count = 0;
+  uint8_t open_count  = 0;
+  uint8_t close_count = 0;
   for(int i = 0; i < _calc.operator_stack.size(); i++) {
-    if(OPEN_PAREN_OPERATOR == _calc.operator_stack[i]) count++;
+    if(OPEN_PAREN_OPERATOR == _calc.operator_stack[i]) open_count++;
   }
-  return count;
+  for(int i = 0; i < _calc.operator_stack.size(); i++) {
+    if(CLOSE_PAREN_OPERATOR == _calc.operator_stack[i]) close_count++;
+  }
+  return open_count - close_count;
 }
