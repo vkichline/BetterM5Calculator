@@ -26,16 +26,16 @@ Memory is very powerful on the M5 Calculator. You get one 'simple' memory, 100 n
 unlimited push-down memory stack. Once you press the keyboard's 'M' key, you are in Memory Mode, and the next key is
 interpreted specially:
 
-* MM :   Recalls simple memory
-* M`=` :  Stores simple memory
-* MA :  Clears simple memory
-* M`+` :   Adds to simple memory
-* M`-` :   Subtracts from simple memory
-* M`*` :   Multiplies simple memory
-* M`%` :   Takes percent of simple memory
-* M`.` :   Cancels memory mode
-* M3M :  Recalls M[3]
-* M99+ : Adds to M[99]
+* `MM` :   Recalls simple memory
+* `M=` :  Stores simple memory
+* `MA` :  Clears simple memory
+* `M+` :   Adds to simple memory
+* `M-` :   Subtracts from simple memory
+* `M*` :   Multiplies simple memory
+* `M%` :   Takes percent of simple memory
+* `M.` :   Cancels memory mode
+* `M3M` :  Recalls M[3]
+* `M99+` : Adds to M[99]
 
 The AC key clears the current value. Pressing AC twice in a row clears all memory as well.  
 As with many calculators, you must use the +/- button to enter a negative number. Press +/- anytime that you are
@@ -44,12 +44,12 @@ The display line just above the buttons shows the operator stack on the left, an
 may find it interesting to see how the calculator calculates, but it's mainly there to reveal invisible bugs  
 The Status is displayed above the main value. First, the state value of the KeyCalculator is displayed:
 
-* A :  Ready for Any input
-* N :  Ready for Numeric input
-* O :  Ready for Operator input
+* `A` :  Ready for Any input
+* `N` :  Ready for Numeric input
+* `O` :  Ready for Operator input
 * `>` : Currently building a number in the display
-* M :  In "Memory Mode", building a memory address
-* X :  In global error mode
+* `M` :  In "Memory Mode", building a memory address
+* `X` :  In global error mode
 
 If any numbered memories are in use, up to eight
 indexes will be shown, as in M[3,7,19]. If more than eight are in use, the indexes will be followed by '...'.  
